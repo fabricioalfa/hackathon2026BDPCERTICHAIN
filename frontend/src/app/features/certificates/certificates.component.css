@@ -1,0 +1,23 @@
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.row span {
+  min-width: 130px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+code {
+  word-break: break-all;
+  cursor: pointer;
+  color: #1d4ed8;
+}

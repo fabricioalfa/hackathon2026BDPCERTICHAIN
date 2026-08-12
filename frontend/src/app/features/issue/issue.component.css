@@ -1,0 +1,49 @@
+.issue-wrapper {
+  max-width: 640px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.row span {
+  min-width: 120px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+code {
+  word-break: break-all;
+}
+
+.note {
+  font-size: 0.85rem;
+  color: #6b7280;
+}

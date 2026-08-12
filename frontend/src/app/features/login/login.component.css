@@ -1,0 +1,28 @@
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0b1d3a 0%, #123b6d 100%);
+}
+
+p-card {
+  width: 380px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+.hint {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}

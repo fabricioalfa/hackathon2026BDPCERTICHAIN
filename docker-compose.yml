@@ -1,0 +1,88 @@
+# ============================================================
+# CERTICHAIN BDP - Orquestación principal (Docker Compose)
+# Servicios: PostgreSQL, Backend (Spring Boot), Frontend (Angular),
+#            OCR (Tesseract).
+# La red Hyperledger Fabric se levanta por separado en
+# blockchain/network/docker-compose.yml (ver Makefile).
+# ============================================================
+
+name: ${COMPOSE_PROJECT_NAME:-certichain}
+
+services:
+  # ---------------- PostgreSQL ----------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: certichain-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-certichain}
+      POSTGRES_USER: ${POSTGRES_USER:-certichain}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-certichain_dev_2026}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-certichain} -d ${POSTGRES_DB:-certichain}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    mem_limit: 512m
+
+  # ---------------- Backend Spring Boot ----------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: certichain-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-certichain}
+      DB_USERNAME: ${POSTGRES_USER:-certichain}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-certichain_dev_2026}
+      JWT_SECRET: ${JWT_SECRET:-certichain-bdp-secret-key-debe-cambiarse-en-produccion-2026}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      OCR_URL: http://ocr:8090/api/ocr
+      FABRIC_CHANNEL: ${FABRIC_CHANNEL:-certchain}
+      FABRIC_CHAINCODE: ${FABRIC_CHAINCODE:-certchain}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    mem_limit: 1024m
+
+  # ---------------- Frontend Angular (servido por Nginx) ----------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: certichain-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+    mem_limit: 256m
+
+  # ---------------- OCR Tesseract ----------------
+  ocr:
+    build:
+      context: ./ocr
+      dockerfile: Dockerfile
+    container_name: certichain-ocr
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    mem_limit: 512m
+
+volumes:
+  pgdata:

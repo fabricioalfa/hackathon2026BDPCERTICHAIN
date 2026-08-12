@@ -1,0 +1,36 @@
+<p-toolbar>
+  <ng-template #start>
+    <h2 style="margin: 0">CERTICHAIN BDP · Dashboard</h2>
+  </ng-template>
+  <ng-template #end>
+    <p-button label="Emitir certificado" icon="pi pi-plus" styleClass="p-button-primary mr-2" (onClick)="goTo('/issue')" />
+    <p-button label="Salir" icon="pi pi-sign-out" styleClass="p-button-text" (onClick)="logout()" />
+  </ng-template>
+</p-toolbar>
+
+<div class="grid">
+  <p-card header="Certificados emitidos">
+    <p-table [value]="certificates" [paginator]="true" [rows]="8" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th>UUID</th>
+          <th>Título</th>
+          <th>Tipo</th>
+          <th>Titular</th>
+          <th>Estado</th>
+          <th>Emisión</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-c>
+        <tr>
+          <td><code>{{ c.uuid }}</code></td>
+          <td>{{ c.title }}</td>
+          <td>{{ c.docType }}</td>
+          <td>{{ c.holderName }}</td>
+          <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
+          <td>{{ c.issueDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

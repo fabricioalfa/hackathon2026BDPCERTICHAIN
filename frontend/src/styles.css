@@ -1,0 +1,13 @@
+/* Importa los estilos base de PrimeIcons (iconos de PrimeNG) */
+@import "primeicons/primeicons.css";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family, 'Inter', -apple-system, 'Segoe UI', sans-serif);
+  background: #f1f5f9;
+  color: #1e293b;
+}

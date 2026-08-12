@@ -1,0 +1,46 @@
+.verify-wrapper {
+  max-width: 560px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+.valid-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #16a34a;
+  margin-bottom: 1rem;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.row span {
+  min-width: 110px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+code {
+  word-break: break-all;
+}

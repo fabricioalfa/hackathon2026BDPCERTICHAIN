@@ -1,0 +1,66 @@
+<p-toolbar>
+  <ng-template #start>
+    <h2 style="margin: 0">Emitir certificado</h2>
+  </ng-template>
+  <ng-template #end>
+    <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-text" (onClick)="back()" />
+    <p-button label="Salir" icon="pi pi-sign-out" styleClass="p-button-text" (onClick)="logout()" />
+  </ng-template>
+</p-toolbar>
+
+<div class="issue-wrapper">
+  <p-card header="Registro de certificado digital">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label for="title">Título del documento *</label>
+        <input pInputText id="title" formControlName="title" placeholder="Ej: Garantía personal Nº 12345" />
+      </div>
+
+      <div class="field">
+        <label for="docType">Tipo de documento *</label>
+        <p-select id="docType" formControlName="docType" [options]="docTypes" optionLabel="label" optionValue="value" placeholder="Selecciona el tipo" styleClass="w-full" />
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="holderDni">CI / DNI del titular</label>
+          <input pInputText id="holderDni" formControlName="holderDni" placeholder="1234567" />
+        </div>
+        <div class="field">
+          <label for="holderName">Nombre del titular</label>
+          <input pInputText id="holderName" formControlName="holderName" placeholder="Juan Perez" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="expiryDate">Vigencia (opcional)</label>
+        <p-datepicker id="expiryDate" formControlName="expiryDate" dateFormat="dd/mm/yy" showIcon="true" />
+      </div>
+
+      <div class="field">
+        <label for="metadataJson">Metadatos (JSON, opcional)</label>
+        <textarea pTextarea id="metadataJson" formControlName="metadataJson" rows="3" placeholder='{"nro_operacion":"OP-001"}' styleClass="w-full"></textarea>
+      </div>
+
+      <p-button type="submit" label="Emitir y registrar en blockchain" icon="pi pi-check" [loading]="loading" styleClass="w-full" />
+    </form>
+  </p-card>
+</div>
+
+<p-dialog header="Certificado emitido" [(visible)]="showResult" [style]="{ width: '520px' }" [modal]="true">
+  <ng-container *ngIf="issued">
+    <div class="detail">
+      <div class="row"><span>UUID:</span><code>{{ issued.uuid }}</code></div>
+      <div class="row"><span>Hash (SHA-256):</span><code>{{ issued.documentHash }}</code></div>
+      <div class="row"><span>Transacción:</span><code>{{ issued.txId }}</code></div>
+      <div class="row"><span>Título:</span><b>{{ issued.title }}</b></div>
+      <div class="row"><span>Estado:</span>{{ issued.status }}</div>
+      <p-divider />
+      <p class="note">Registrado en la cadena de bloques. El codigo QR se genera a partir de la URL de verificacion.</p>
+    </div>
+  </ng-container>
+  <ng-template #footer>
+    <p-button label="Nuevo" icon="pi pi-plus" styleClass="p-button-secondary" (onClick)="reset()" />
+    <p-button label="Ver dashboard" icon="pi pi-home" (onClick)="back()" />
+  </ng-template>
+</p-dialog>

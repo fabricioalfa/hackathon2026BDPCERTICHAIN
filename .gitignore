@@ -1,0 +1,41 @@
+# --- Entorno / secretos ---
+.env
+*.env.local
+
+# --- Node / Angular ---
+node_modules/
+dist/
+.vscode/*
+!.vscode/extensions.json
+.angular/
+
+# --- Java / Maven ---
+backend/target/
+*.class
+*.jar
+.mvn/wrapper/maven-wrapper.jar
+
+# --- Python ---
+__pycache__/
+*.pyc
+ocr/.venv/
+ocr/venv/
+
+# --- Go ---
+blockchain/chaincode/vendor/
+*.sum.tmp
+
+# --- Fabric (artefactos generados) ---
+blockchain/network/config/organizations/
+blockchain/network/config/channel-artifacts/
+*.block
+
+# --- OCR / archivos subidos ---
+ocr/uploads/
+ocr/processed/
+
+# --- IDE / SO ---
+.idea/
+*.iml
+.DS_Store
+*.log

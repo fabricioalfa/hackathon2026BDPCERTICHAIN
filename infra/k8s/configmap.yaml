@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: certichain-config
+  namespace: certichain
+data:
+  SPRING_PROFILES_ACTIVE: prod
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "certichain"
+  OCR_URL: "http://ocr:8090/api/ocr"
+  FABRIC_CHANNEL: "certchain"
+  FABRIC_CHAINCODE: "certchain"
+  FRONTEND_BASE_URL: "http://localhost:4200"
