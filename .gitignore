@@ -34,6 +34,9 @@ blockchain/network/config/channel-artifacts/
 ocr/uploads/
 ocr/processed/
 
+# --- Documentos custodiados (storage local) ---
+data/
+
 # --- IDE / SO ---
 .idea/
 *.iml

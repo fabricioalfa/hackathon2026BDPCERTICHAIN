@@ -17,6 +17,12 @@ public class Certificate {
     @Column(name = "document_hash", nullable = false, length = 128)
     private String documentHash;
 
+    @Column(name = "document_file", length = 512)
+    private String documentFile;
+
+    @Column(name = "document_mime", length = 64)
+    private String documentMime;
+
     @Column(name = "tx_id", length = 128)
     private String txId;
 
@@ -31,6 +37,9 @@ public class Certificate {
 
     @Column(name = "holder_name", length = 255)
     private String holderName;
+
+    @Column(name = "holder_birth_date", length = 20)
+    private String holderDateOfBirth;
 
     @Column(name = "issue_date", nullable = false)
     private Instant issueDate = Instant.now();
@@ -60,6 +69,12 @@ public class Certificate {
     public String getDocumentHash() { return documentHash; }
     public void setDocumentHash(String documentHash) { this.documentHash = documentHash; }
 
+    public String getDocumentFile() { return documentFile; }
+    public void setDocumentFile(String documentFile) { this.documentFile = documentFile; }
+
+    public String getDocumentMime() { return documentMime; }
+    public void setDocumentMime(String documentMime) { this.documentMime = documentMime; }
+
     public String getTxId() { return txId; }
     public void setTxId(String txId) { this.txId = txId; }
 
@@ -74,6 +89,9 @@ public class Certificate {
 
     public String getHolderName() { return holderName; }
     public void setHolderName(String holderName) { this.holderName = holderName; }
+
+    public String getHolderDateOfBirth() { return holderDateOfBirth; }
+    public void setHolderDateOfBirth(String holderDateOfBirth) { this.holderDateOfBirth = holderDateOfBirth; }
 
     public Instant getIssueDate() { return issueDate; }
     public void setIssueDate(Instant issueDate) { this.issueDate = issueDate; }

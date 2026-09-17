@@ -10,11 +10,20 @@ export interface Certificate {
   docType: string;
   holderDni: string;
   holderName: string;
+  holderDateOfBirth: string;
   issueDate: string;
   expiryDate: string;
   status: string;
   qrUrl: string;
+  qrBase64: string;
+  documentAvailable: boolean;
   issuedBy: string;
+}
+
+export interface VerificationResult {
+  valid: boolean;
+  message: string;
+  certificate: Certificate;
 }
 
 export interface IssueCertificateRequest {
@@ -22,6 +31,7 @@ export interface IssueCertificateRequest {
   docType: string;
   holderDni?: string;
   holderName?: string;
+  holderDateOfBirth?: string;
   expiryDate?: string;
   metadataJson?: string;
   base64Content?: string;
@@ -43,8 +53,15 @@ export class CertificateService {
     return this.http.post<Certificate>(`${environment.apiUrl}/api/certificates`, request);
   }
 
-  verifyPublic(uuid: string, hash: string) {
-    const params = new HttpParams().set('uuid', uuid).set('hash', hash);
-    return this.http.get<Certificate>(`${environment.apiUrl}/api/public/verify`, { params });
+  verifyPublic(uuid: string, hash?: string) {
+    let params = new HttpParams().set('uuid', uuid);
+    if (hash) {
+      params = params.set('hash', hash);
+    }
+    return this.http.get<VerificationResult>(`${environment.apiUrl}/api/public/verify`, { params });
+  }
+
+  documentUrl(uuid: string) {
+    return `${environment.apiUrl}/api/public/certificate/${uuid}/document`;
   }
 }

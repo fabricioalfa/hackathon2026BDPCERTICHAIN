@@ -95,9 +95,15 @@ Debes ver los 4 servicios con estado `Up` y `healthy` (el backend y postgres tar
 ## Probar la demo (flujo del negocio)
 
 1. **Iniciar sesión** en http://localhost:4200 con `admin/admin123`.
-2. **Emitir un certificado** (menú *Emitir*): completa los datos y sube una imagen de carnet/folio. El OCR extrae el DNI automáticamente.
-3. **Ver certificados** (menú *Certificados*): lista todos los emitidos con su hash.
-4. **Verificar autenticidad** (menú *Verificar*): pega el hash de un certificado → la plataforma lo valida. Si alteras un solo carácter del hash, la verificación falla (demostrando que el documento es a prueba de manipulación).
+2. **Emitir un certificado** (menú *Emitir*):
+   - **Sube la fotocopia/escaneo del carnet de identidad** (arrastra el archivo sobre el recuadro punteado o haz clic para seleccionarlo).
+   - El OCR lee el documento en automático y extrae **nro de carnet / CI**, **nombre completo** y **fecha de nacimiento**, autocompletando los campos. Verifica y corrige si hace falta.
+   - Completa el título y tipo de documento y presiona *Emitir*. El hash SHA-256 se calcula sobre los datos **y la imagen original**, de modo que la fotocopia queda custodiada a prueba de manipulación.
+   - Al emitir se muestra el **QR de verificación** y la **vista previa del documento custodiado**.
+3. **Ver certificados** (menú *Certificados*): lista todos los emitidos con su hash, QR y documento custodiado (descargable desde el detalle).
+4. **Verificar autenticidad** (menú *Verificar*): la URL pública `http://localhost:4200/verify?uuid=CC-...` (la que codifica el QR) valida el certificado sin necesidad de cuenta. Si agregás el **hash SHA-256** se valida además la integridad total: altera un solo carácter del hash y la verificación falla.
+
+> Cualquier persona con la URL `/verify?uuid=...` (por ejemplo, escaneando el QR impreso en el documento) puede autenticar un certificado sin login. El endpoint público es `/api/public/verify` y la descarga del original custodiado es `/api/public/certificate/{uuid}/document`.
 
 ## Comandos útiles (Makefile)
 
@@ -138,13 +144,21 @@ docker compose logs -f backend
 | El backend no arranca (puerto 8080 ocupado) | `sudo lsof -i :8080` y libera el puerto, o cambia `SERVER_PORT` en `.env` |
 | El puerto 4200/8080/8090 ya está en uso | Ajusta el mapeo de puertos en `docker-compose.yml` o el `.env` |
 | Pantalla en blanco en el frontend | Recarga forzada: `Ctrl+Shift+R` (limpia caché del bundle viejo) |
-| OCR no extrae el DNI | Verifica http://localhost:8090/api/ocr/health y que la imagen sea clara |
+| OCR no extrae los datos | Verifica http://localhost:8090/api/ocr/health y que la imagen sea clara (buena luz, nítida, bien encuadrada) |
+| El OCR ignora algunos campos | Toca *Relanzar OCR* o completa los campos manualmente; la fotocopia debe verse legible |
+| No veo la fecha de nacimiento/nombre en un certificado viejo | Fuerza `make reset` para que Hibernate agregue la columna y emite de nuevo |
 | Quiero empezar de cero | `make reset` (borra la BD y vuelve a levantar todo) |
 
 ## Notas técnicas
 
+### Módulo OCR
+El microservicio `ocr/` usa Tesseract + OpenCV y está optimizado para **carnets de identidad bolivianos**: preprocesa la imagen (escala, contraste y binarización) para tolerar fotocopias, y extrae **CI, nombre completo y fecha de nacimiento**. Prueba varias configuraciones de Tesseract y elige la lectura más confiable.
+
 ### Módulo Fabric
-El `FabricService` del backend usa un **stub local en memoria** para que la demo funcione sin levantar red blockchain. Cuando la red Hyperledger Fabric esté disponible, se reemplaza por el SDK de Fabric (Gateway) usando `fabric.peer-endpoint`. El chaincode real ya está listo y compila en `blockchain/chaincode`.
+El `FabricService` del backend usa un **ledger simulado persistente en PostgreSQL** (tabla `ledger_entry`) para que la demo funcione sin levantar red blockchain: cada emisión registra un `txId` + hash y las verificaciones quedan disponibles incluso reiniciando el backend. Cuando la red Hyperledger Fabric esté disponible, el cuerpo de `registerCertificate`/`verifyHash` se reemplaza por el SDK de Fabric (Gateway) usando `fabric.peer-endpoint`, conservando esta tabla como respaldo local. El chaincode real ya está listo y compila en `blockchain/chaincode`.
+
+### Custodia de documentos
+Al emitir con una imagen/escaneo, el original se custodia en `<DOCUMENTS_DIR>` (por defecto `data/documents`), se detecta su tipo (`pdf`, `png`, `jpg`, etc.), se sirve por `GET /api/public/certificate/{uuid}/document` y el certificado queda con `documentAvailable=true`. El entrypoint del contenedor garantiza que ese directorio sea escribible por el usuario `spring` aunque el volumen lo cree Docker como `root`.
 
 ### Kubernetes
 No es necesario para el hackathon: todo corre con Docker Compose. Los manifiestos en `infra/k8s/` están preparados para escalar a producción (Fase IV).

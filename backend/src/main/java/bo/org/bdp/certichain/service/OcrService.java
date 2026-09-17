@@ -55,12 +55,15 @@ public class OcrService {
             JsonNode json = objectMapper.readTree(response.body());
             String text = json.path("text").asText("");
             String dni = json.hasNonNull("detectedDni") ? json.get("detectedDni").asText() : null;
-            return new OcrResult(text, dni);
+            String name = json.hasNonNull("detectedName") ? json.get("detectedName").asText() : null;
+            String dateOfBirth = json.hasNonNull("detectedDateOfBirth") ? json.get("detectedDateOfBirth").asText() : null;
+            int fields = json.hasNonNull("fieldsDetected") ? json.get("fieldsDetected").asInt() : 0;
+            return new OcrResult(text, dni, name, dateOfBirth, fields);
         } catch (Exception e) {
             log.warn("OCR no disponible ({}) - se continua sin extraccion", e.getMessage());
-            return new OcrResult("", null);
+            return new OcrResult("", null, null, null, 0);
         }
     }
 
-    public record OcrResult(String text, String detectedDni) {}
+    public record OcrResult(String text, String detectedDni, String detectedName, String detectedDateOfBirth, int fieldsDetected) {}
 }

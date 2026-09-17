@@ -2,29 +2,47 @@
   <p-card header="Verificación de certificado" subheader="Consulta pública · CERTICHAIN BDP">
     <div class="field">
       <label for="uuid">UUID del certificado</label>
-      <input pInputText id="uuid" [(ngModel)]="uuid" placeholder="CC-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+      <input pInputText id="uuid" [(ngModel)]="uuid" placeholder="CC-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" (keyup.enter)="verify()" />
+      <small>Al ingresar por QR este campo se completa solo.</small>
     </div>
     <div class="field">
-      <label for="hash">Hash del documento (SHA-256)</label>
-      <input pInputText id="hash" [(ngModel)]="hash" placeholder="hash de 64 caracteres hex" />
+      <label for="hash">Hash del documento (SHA-256, opcional)</label>
+      <input pInputText id="hash" [(ngModel)]="hash" placeholder="Si lo agregas, se valida la integridad total" (keyup.enter)="verify()" />
     </div>
-    <p-button label="Verificar autenticidad" icon="pi pi-shield" [loading]="checking" styleClass="w-full" (onClick)="verify()" />
+    <p-button label="Verificar" icon="pi pi-shield" [loading]="checking" styleClass="w-full" (onClick)="verify()" />
   </p-card>
 
-  <p-card *ngIf="cert" [style]="{ 'margin-top': '1.5rem' }">
-    <div class="valid-banner">
-      <i class="pi pi-check-circle" style="font-size: 2rem"></i>
-      <h3 style="margin: 0.5rem 0 0">Documento auténtico y verificado</h3>
+  <p-card *ngIf="result" [style]="{ 'margin-top': '1.5rem' }">
+    <div class="valid-banner" [class.invalid]="!result.valid">
+      <i class="pi" [ngClass]="result.valid ? 'pi-check-circle' : 'pi-times-circle'" style="font-size: 2rem"></i>
+      <h3 style="margin: 0.5rem 0 0">{{ result.valid ? 'Documento válido' : 'Documento no válido' }}</h3>
+      <p style="margin: 0.25rem 0 0; font-size: 0.9rem">{{ result.message }}</p>
     </div>
-    <div class="detail">
-      <div class="row"><span>UUID:</span><code>{{ cert.uuid }}</code></div>
-      <div class="row"><span>Hash:</span><code>{{ cert.documentHash }}</code></div>
-      <div class="row"><span>Transacción:</span><code>{{ cert.txId }}</code></div>
-      <div class="row"><span>Título:</span><b>{{ cert.title }}</b></div>
-      <div class="row"><span>Tipo:</span>{{ cert.docType }}</div>
-      <div class="row"><span>Titular:</span>{{ cert.holderName }}</div>
-      <div class="row"><span>Emisión:</span>{{ cert.issueDate | date: 'dd/MM/yyyy HH:mm' }}</div>
-      <div class="row"><span>Estado:</span><p-tag [value]="cert.status" [severity]="statusSeverity(cert.status)" /></div>
-    </div>
+
+    <ng-container *ngIf="cert">
+      <div class="qr-doc">
+        <div class="qr-box" *ngIf="cert.qrBase64">
+          <img [src]="'data:image/png;base64,' + cert.qrBase64" alt="QR de verificacion" />
+          <small>Este mismo QR valida el certificado</small>
+        </div>
+        <div class="doc-box" *ngIf="cert.documentAvailable">
+          <img [src]="certService.documentUrl(cert.uuid)" alt="Documento original custodado" />
+          <p-button label="Abrir / descargar original" icon="pi pi-download" styleClass="p-button-sm p-button-outlined" (onClick)="openDoc(cert.uuid)" />
+        </div>
+      </div>
+
+      <div class="detail">
+        <div class="row"><span>UUID:</span><code>{{ cert.uuid }}</code></div>
+        <div class="row"><span>Hash:</span><code>{{ cert.documentHash }}</code></div>
+        <div class="row"><span>Transacción:</span><code>{{ cert.txId }}</code></div>
+        <div class="row"><span>Título:</span><b>{{ cert.title }}</b></div>
+        <div class="row"><span>Tipo:</span>{{ cert.docType }}</div>
+        <div class="row"><span>Titular:</span>{{ cert.holderName }}</div>
+        <div class="row"><span>CI / DNI:</span>{{ cert.holderDni }}</div>
+        <div class="row"><span>Nacimiento:</span>{{ cert.holderDateOfBirth }}</div>
+        <div class="row"><span>Emisión:</span>{{ cert.issueDate | date: 'dd/MM/yyyy HH:mm' }}</div>
+        <div class="row"><span>Estado:</span><p-tag [value]="cert.status" [severity]="statusSeverity(cert.status)" /></div>
+      </div>
+    </ng-container>
   </p-card>
 </div>

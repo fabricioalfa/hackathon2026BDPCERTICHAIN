@@ -8,11 +8,12 @@ import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ToastModule } from 'primeng/toast';
+import { DividerModule } from 'primeng/divider';
 import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-certificates',
-  imports: [CommonModule, ButtonModule, TableModule, TagModule, DialogModule, ToolbarModule, ToastModule],
+  imports: [CommonModule, ButtonModule, TableModule, TagModule, DialogModule, ToolbarModule, ToastModule, DividerModule],
   providers: [MessageService],
   templateUrl: './certificates.component.html',
   styleUrl: './certificates.component.css'
@@ -23,7 +24,7 @@ export class CertificatesComponent implements OnInit {
   showDetail = false;
 
   constructor(
-    private certService: CertificateService,
+    readonly certService: CertificateService,
     private auth: AuthService,
     private messageService: MessageService
   ) {}
@@ -39,6 +40,10 @@ export class CertificatesComponent implements OnInit {
   view(cert: Certificate) {
     this.selected = cert;
     this.showDetail = true;
+  }
+
+  openDoc(uuid: string) {
+    window.open(this.certService.documentUrl(uuid), '_blank');
   }
 
   copy(text: string) {

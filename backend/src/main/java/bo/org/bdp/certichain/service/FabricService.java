@@ -1,20 +1,23 @@
 package bo.org.bdp.certichain.service;
 
+import bo.org.bdp.certichain.entity.LedgerEntry;
+import bo.org.bdp.certichain.repository.LedgerEntryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Puente hacia Hyperledger Fabric.
  *
- * MVP: registra el hash en el "ledger" con un stub local (en memoria) para que
- * la demo funcione sin red Fabric levantada. Cuando la red este disponible,
- * se reemplaza el cuerpo de {@link #registerCertificate} y {@link #verifyHash}
- * por las llamadas al SDK de Fabric (Gateway) usando {@code fabric.peer-endpoint}.
+ * MVP: registra el hash en la tabla {@code ledger_entry} (PostgreSQL) de modo
+ * que las verificaciones sobreviven a reinicios del backend. Cuando la red
+ * Fabric este disponible, el cuerpo de {@link #registerCertificate} y
+ * {@link #verifyHash} se reemplaza por el SDK de Fabric (Gateway) usando
+ * {@code fabric.peer-endpoint}, conservando esta tabla como respaldo local.
  */
 @Service
 public class FabricService {
@@ -30,20 +33,27 @@ public class FabricService {
     @Value("${fabric.peer-endpoint:localhost:7051}")
     private String peerEndpoint;
 
-    private final java.util.concurrent.ConcurrentMap<String, LedgerEntry> localLedger =
-            new java.util.concurrent.ConcurrentHashMap<>();
+    private final LedgerEntryRepository ledgerRepository;
 
-    public record LedgerEntry(String hash, String uuid, String issuer, Instant timestamp) {}
+    public FabricService(LedgerEntryRepository ledgerRepository) {
+        this.ledgerRepository = ledgerRepository;
+    }
 
     /**
      * Registra el hash del documento en el ledger.
-     * @return txId transaccion de fabric.
+     * @return txId transaccion (fabric o simulada).
      */
     public String registerCertificate(String uuid, String hash, String issuer) {
         String txId = "tx-" + UUID.randomUUID();
-        LedgerEntry entry = new LedgerEntry(hash, uuid, issuer, Instant.now());
-        localLedger.put(uuid, entry);
-        log.info("[FABRIC-STUB] channel={} chaincode={} peer={} tx={} hash={}",
+
+        LedgerEntry entry = new LedgerEntry();
+        entry.setUuid(uuid);
+        entry.setHash(hash);
+        entry.setTxId(txId);
+        entry.setIssuer(issuer);
+        ledgerRepository.save(entry);
+
+        log.info("[LEDGER] channel={} chaincode={} peer={} tx={} hash={}",
                 channel, chaincode, peerEndpoint, txId, hash);
         return txId;
     }
@@ -52,17 +62,22 @@ public class FabricService {
      * Verifica que un hash exista en el ledger para un certificado dado.
      */
     public boolean verifyHash(String uuid, String hash) {
-        LedgerEntry entry = localLedger.get(uuid);
-        if (entry == null) {
-            return false;
-        }
-        return entry.hash().equals(hash);
+        return ledgerRepository.findByUuid(uuid)
+                .map(entry -> entry.getHash().equals(hash))
+                .orElse(false);
+    }
+
+    /**
+     * Indica si el certificado existe en el ledger (para verificaciones solo UUID).
+     */
+    public boolean exists(String uuid) {
+        return ledgerRepository.findByUuid(uuid).isPresent();
     }
 
     /**
      * Devuelve la entrada del ledger para trazabilidad, si existe.
      */
-    public LedgerEntry getLedgerEntry(String uuid) {
-        return localLedger.get(uuid);
+    public Optional<LedgerEntry> getLedgerEntry(String uuid) {
+        return ledgerRepository.findByUuid(uuid);
     }
 }

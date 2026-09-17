@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class CertificateController {
     }
 
     @PostMapping
-    @Operation(summary = "Emitir certificado", description = "Calcula el hash, lo registra en blockchain y emite el certificado con QR")
+    @Operation(summary = "Emitir certificado", description = "Calcula el hash, lo registra en blockchain, custodia el documento y emite el certificado con QR")
     public ResponseEntity<CertificateResponse> issue(@Valid @RequestBody IssueCertificateRequest request,
                                                      Authentication authentication) {
         User issuer = resolveUser(authentication);
@@ -47,6 +48,17 @@ public class CertificateController {
     @Operation(summary = "Consultar certificado por UUID")
     public ResponseEntity<CertificateResponse> findByUuid(@PathVariable String uuid) {
         return ResponseEntity.ok(certificateService.findByUuid(uuid));
+    }
+
+    @GetMapping("/{uuid}/document")
+    @Operation(summary = "Descargar documento custodado",
+            description = "Devuelve la imagen/escaneo original custodiado en la emission")
+    public ResponseEntity<byte[]> downloadDocument(@PathVariable String uuid) {
+        CertificateService.DocumentData doc = certificateService.loadDocument(uuid);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(doc.mime()))
+                .header("Content-Disposition", "inline; filename=\"" + uuid + "\"")
+                .body(doc.bytes());
     }
 
     private User resolveUser(Authentication authentication) {

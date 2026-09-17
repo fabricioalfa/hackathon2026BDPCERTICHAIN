@@ -16,6 +16,9 @@ public class QrService {
      * Genera un codigo QR (PNG) en base64 a partir de un texto/URL.
      */
     public String generateQrBase64(String content, int size) {
+        if (content == null || content.isBlank()) {
+            return "";
+        }
         try {
             QRCodeWriter writer = new QRCodeWriter();
             BitMatrix matrix = writer.encode(content, BarcodeFormat.QR_CODE, size, size);

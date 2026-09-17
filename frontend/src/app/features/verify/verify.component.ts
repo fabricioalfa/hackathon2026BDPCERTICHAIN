@@ -2,17 +2,18 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { CertificateService, Certificate } from '../../core/services/certificate.service';
+import { CertificateService, Certificate, VerificationResult } from '../../core/services/certificate.service';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
+import { AvatarModule } from 'primeng/avatar';
 
 @Component({
   selector: 'app-verify',
-  imports: [CommonModule, FormsModule, ToastModule, InputTextModule, ButtonModule, CardModule, TagModule],
+  imports: [CommonModule, FormsModule, ToastModule, InputTextModule, ButtonModule, CardModule, TagModule, AvatarModule],
   providers: [MessageService],
   templateUrl: './verify.component.html',
   styleUrl: './verify.component.css'
@@ -20,40 +21,57 @@ import { TagModule } from 'primeng/tag';
 export class VerifyComponent {
   uuid = '';
   hash = '';
-  cert: Certificate | null = null;
+  result: VerificationResult | null = null;
   checking = false;
+
+  readonly certService: CertificateService;
 
   constructor(
     private route: ActivatedRoute,
-    private certService: CertificateService,
+    certService: CertificateService,
     private messageService: MessageService
   ) {
+    this.certService = certService;
     this.route.queryParamMap.subscribe((params) => {
       const u = params.get('uuid');
       if (u) {
         this.uuid = u;
+        this.check();
       }
     });
   }
 
+  openDoc(uuid: string) {
+    window.open(this.certService.documentUrl(uuid), '_blank');
+  }
+
   verify() {
-    if (!this.uuid || !this.hash) {
-      this.messageService.add({ severity: 'warn', summary: 'Datos requeridos', detail: 'Ingresa UUID y hash del documento' });
+    if (!this.uuid) {
+      this.messageService.add({ severity: 'warn', summary: 'Datos requeridos', detail: 'Ingresa el UUID del certificado (links del QR lo cargan automáticamente)' });
       return;
     }
+    this.check();
+  }
+
+  check() {
     this.checking = true;
-    this.certService.verifyPublic(this.uuid, this.hash).subscribe({
-      next: (cert) => {
+    this.result = null;
+    this.certService.verifyPublic(this.uuid.trim(), this.hash.trim() || undefined).subscribe({
+      next: (res) => {
         this.checking = false;
-        this.cert = cert;
+        this.result = res;
       },
       error: (err) => {
         this.checking = false;
-        this.cert = null;
+        this.result = null;
         const msg = err.error?.message || 'El certificado no pudo ser validado';
         this.messageService.add({ severity: 'error', summary: 'No válido', detail: msg });
       }
     });
+  }
+
+  get cert(): Certificate | null {
+    return this.result?.certificate ?? null;
   }
 
   statusSeverity(status: string) {

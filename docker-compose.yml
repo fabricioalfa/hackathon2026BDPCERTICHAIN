@@ -52,6 +52,8 @@ services:
       FABRIC_CHAINCODE: ${FABRIC_CHAINCODE:-certchain}
     ports:
       - "8080:8080"
+    volumes:
+      - ./data/documents:/app/documents
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
       interval: 15s

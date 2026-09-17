@@ -9,8 +9,14 @@ RUN mvn package -DskipTests -B
 # ---- Etapa 2: imagen final ligera (JRE) ----
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup -S spring && adduser -S spring -G spring \
+    && mkdir -p /app/documents \
+    && chown spring:spring /app/documents
 COPY --from=build /app/target/*.jar app.jar
-USER spring:spring
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# El entrypoint garantiza que /app/documents sea escribible para el usuario
+# spring aunque el volumen lo cree Docker con otro propietario, y luego
+# ejecuta la aplicacion bajando privilegios a spring:spring.
+ENTRYPOINT ["/app/entrypoint.sh"]

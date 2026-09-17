@@ -26,3 +26,22 @@ CREATE INDEX IF NOT EXISTS idx_audit_entity
 
 CREATE INDEX IF NOT EXISTS idx_audit_created
     ON audit_log (created_at);
+
+-- Ledger local (respaldo de los hashes registrados; en MVP reemplaza la red Fabric)
+CREATE TABLE IF NOT EXISTS ledger_entry (
+    id          BIGSERIAL PRIMARY KEY,
+    uuid        VARCHAR(128) NOT NULL UNIQUE,
+    hash        VARCHAR(128) NOT NULL,
+    tx_id       VARCHAR(128),
+    issuer      VARCHAR(100),
+    created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ledger_uuid
+    ON ledger_entry (uuid);
+
+-- Compatibilidad: columna de fecha de nacimiento del titular
+-- (Hibernate la crea con ddl-auto: update; se deja para bases nuevas)
+ALTER TABLE certificate ADD COLUMN IF NOT EXISTS holder_birth_date VARCHAR(20);
+ALTER TABLE certificate ADD COLUMN IF NOT EXISTS document_file VARCHAR(512);
+ALTER TABLE certificate ADD COLUMN IF NOT EXISTS document_mime VARCHAR(64);

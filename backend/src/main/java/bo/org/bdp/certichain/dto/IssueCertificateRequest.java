@@ -13,6 +13,7 @@ public record IssueCertificateRequest(
 
         String holderDni,
         String holderName,
+        String holderDateOfBirth,
 
         Instant expiryDate,
 

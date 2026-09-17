@@ -14,6 +14,8 @@
       <th>Título</th>
       <th>Tipo</th>
       <th>Titular</th>
+      <th>CI / DNI</th>
+      <th>Nacimiento</th>
       <th>Estado</th>
       <th style="width: 8rem">Acciones</th>
     </tr>
@@ -24,6 +26,8 @@
       <td>{{ c.title }}</td>
       <td>{{ c.docType }}</td>
       <td>{{ c.holderName }}</td>
+      <td>{{ c.holderDni }}</td>
+      <td>{{ c.holderDateOfBirth }}</td>
       <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
       <td>
         <p-button icon="pi pi-eye" styleClass="p-button-sm" [rounded]="true" (onClick)="view(c)" />
@@ -32,8 +36,19 @@
   </ng-template>
 </p-table>
 
-<p-dialog header="Detalle del certificado" [(visible)]="showDetail" [style]="{ width: '550px' }" [modal]="true">
+<p-dialog header="Detalle del certificado" [(visible)]="showDetail" [style]="{ width: '600px' }" [modal]="true">
   <ng-container *ngIf="selected">
+    <div class="qr-doc">
+      <div class="qr-box" *ngIf="selected.qrBase64">
+        <img [src]="'data:image/png;base64,' + selected.qrBase64" alt="Codigo QR de verificacion" />
+        <small>Escaneá para autenticar</small>
+      </div>
+      <div class="doc-box" *ngIf="selected.documentAvailable">
+        <img [src]="certService.documentUrl(selected.uuid)" alt="Documento custodado" />
+        <p-button label="Ver original" icon="pi pi-external-link" styleClass="p-button-sm p-button-outlined" (onClick)="openDoc(selected.uuid)" />
+      </div>
+    </div>
+    <p-divider />
     <div class="detail">
       <div class="row"><span>UUID:</span><code (click)="copy(selected.uuid)">{{ selected.uuid }}</code></div>
       <div class="row"><span>Hash:</span><code (click)="copy(selected.documentHash)">{{ selected.documentHash }}</code></div>
@@ -41,6 +56,8 @@
       <div class="row"><span>Título:</span><b>{{ selected.title }}</b></div>
       <div class="row"><span>Tipo:</span>{{ selected.docType }}</div>
       <div class="row"><span>Titular:</span>{{ selected.holderName }}</div>
+      <div class="row"><span>CI / DNI:</span>{{ selected.holderDni }}</div>
+      <div class="row"><span>Nacimiento:</span>{{ selected.holderDateOfBirth }}</div>
       <div class="row"><span>Emisión:</span>{{ selected.issueDate | date: 'dd/MM/yyyy HH:mm' }}</div>
       <div class="row"><span>URL verificación:</span><code (click)="copy(selected.qrUrl)">{{ selected.qrUrl }}</code></div>
     </div>

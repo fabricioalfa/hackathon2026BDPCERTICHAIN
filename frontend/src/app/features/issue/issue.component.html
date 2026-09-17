@@ -9,54 +9,164 @@
 </p-toolbar>
 
 <div class="issue-wrapper">
-  <p-card header="Registro de certificado digital">
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <div class="field">
-        <label for="title">Título del documento *</label>
-        <input pInputText id="title" formControlName="title" placeholder="Ej: Garantía personal Nº 12345" />
+  <div class="grid-main">
+    <!-- Panel 1: Subida del documento -->
+    <p-card header="1 · Documento a certificar" subheader="Sube una fotocopia o escaneo del carnet de identidad">
+      <div
+        class="dropzone"
+        [class.dragging]="dragging"
+        (click)="fileInput.click()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="dragging = false"
+        (drop)="onDrop($event)"
+        *ngIf="!previewUrl"
+      >
+        <input #fileInput type="file" accept="image/*" hidden (change)="onFilePicked($event)" />
+        <i class="pi pi-images icon"></i>
+        <p class="title">Arrastra la fotocopia aquí o haz clic para seleccionar</p>
+        <small>JPG, PNG, WebP o TIFF · hasta 10 MB</small>
       </div>
 
-      <div class="field">
-        <label for="docType">Tipo de documento *</label>
-        <p-select id="docType" formControlName="docType" [options]="docTypes" optionLabel="label" optionValue="value" placeholder="Selecciona el tipo" styleClass="w-full" />
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label for="holderDni">CI / DNI del titular</label>
-          <input pInputText id="holderDni" formControlName="holderDni" placeholder="1234567" />
+      <div class="doc-preview" *ngIf="previewUrl">
+        <img [src]="previewUrl" alt="Vista previa del documento" />
+        <div class="preview-actions">
+          <p-button icon="pi pi-replay" label="Relanzar OCR" styleClass="p-button-sm p-button-text" (onClick)="runOcr()" [loading]="ocrLoading" />
+          <p-button icon="pi pi-times" label="Quitar" styleClass="p-button-sm p-button-danger p-button-text" (onClick)="clearFile()" />
         </div>
-        <div class="field">
-          <label for="holderName">Nombre del titular</label>
-          <input pInputText id="holderName" formControlName="holderName" placeholder="Juan Perez" />
+      </div>
+
+      <p-divider />
+
+      <!-- Estado del OCR -->
+      <div class="ocr-state" *ngIf="ocrLoading">
+        <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="3" />
+        <div>
+          <h3>Leyendo documento…</h3>
+          <p>El OCR está extrayendo el nro de carnet, nombre y fecha de nacimiento.</p>
         </div>
       </div>
 
-      <div class="field">
-        <label for="expiryDate">Vigencia (opcional)</label>
-        <p-datepicker id="expiryDate" formControlName="expiryDate" dateFormat="dd/mm/yy" showIcon="true" />
+      <div class="ocr-result" *ngIf="!ocrLoading && ocrResult">
+        <div class="ocr-header">
+          <h3>
+            <i class="pi pi-check-circle" style="color: #22c55e; margin-right: 0.4rem"></i>
+            Datos extraídos del documento
+          </h3>
+          <p-tag [value]="ocrResult.fieldsDetected + ' / 3 campos'"
+                 [severity]="ocrResult.fieldsDetected >= 2 ? 'success' : 'warn'" />
+        </div>
+        <p class="hint">Verifica y corrige si es necesario antes de emitir.</p>
+
+        <form [formGroup]="form">
+          <div class="field">
+            <label for="holderDni">Nro de carnet / CI</label>
+            <div class="field-row">
+              <input pInputText id="holderDni" formControlName="holderDni" placeholder="Ej: 1234567" />
+              <p-tag [value]="fieldSource('dni') === 'ocr' ? 'OCR' : 'Manual'" [severity]="sourceSeverity(fieldSource('dni'))" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="holderName">Nombre completo</label>
+            <div class="field-row">
+              <input pInputText id="holderName" formControlName="holderName" placeholder="Ej: Juan Carlos Perez Gomez" />
+              <p-tag [value]="fieldSource('name') === 'ocr' ? 'OCR' : 'Manual'" [severity]="sourceSeverity(fieldSource('name'))" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="holderDateOfBirth">Fecha de nacimiento</label>
+            <div class="field-row">
+              <input pInputText id="holderDateOfBirth" formControlName="holderDateOfBirth" placeholder="dd/mm/aaaa" />
+              <p-tag [value]="fieldSource('dob') === 'ocr' ? 'OCR' : 'Manual'" [severity]="sourceSeverity(fieldSource('dob'))" />
+            </div>
+          </div>
+        </form>
+
+        <p-accordion styleClass="raw-text">
+          <p-accordion-panel value="ocr">
+            <ng-template pTemplate="header">
+              <span>Ver texto crudo del OCR</span>
+            </ng-template>
+            <ng-template pTemplate="content">
+              <pre>{{ ocrResult.text }}</pre>
+            </ng-template>
+          </p-accordion-panel>
+        </p-accordion>
       </div>
 
-      <div class="field">
-        <label for="metadataJson">Metadatos (JSON, opcional)</label>
-        <textarea pTextarea id="metadataJson" formControlName="metadataJson" rows="3" placeholder='{"nro_operacion":"OP-001"}' styleClass="w-full"></textarea>
+      <div class="no-file-card" *ngIf="!ocrLoading && !ocrResult && !previewUrl">
+        <p class="hint"><i class="pi pi-info-circle" style="margin-right: 0.4rem"></i>Sube la fotocopia del carnet para autocompletar los datos del titular.</p>
       </div>
+    </p-card>
 
-      <p-button type="submit" label="Emitir y registrar en blockchain" icon="pi pi-check" [loading]="loading" styleClass="w-full" />
-    </form>
-  </p-card>
+    <!-- Panel 2: Datos del certificado -->
+    <p-card header="2 · Datos del certificado">
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="title">Título del documento *</label>
+          <input pInputText id="title" formControlName="title" placeholder="Ej: Carnet de identidad Nº 1234567" />
+        </div>
+
+        <div class="field">
+          <label for="docType">Tipo de documento *</label>
+          <p-select id="docType" formControlName="docType" [options]="docTypes" optionLabel="label" optionValue="value" placeholder="Selecciona el tipo" styleClass="w-full" />
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label for="holderDni2">CI / DNI del titular</label>
+            <input pInputText id="holderDni2" formControlName="holderDni" placeholder="1234567" />
+          </div>
+          <div class="field">
+            <label for="holderName2">Nombre del titular</label>
+            <input pInputText id="holderName2" formControlName="holderName" placeholder="Juan Perez" />
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label for="holderDateOfBirth2">Fecha de nacimiento</label>
+            <input pInputText id="holderDateOfBirth2" formControlName="holderDateOfBirth" placeholder="dd/mm/aaaa" />
+          </div>
+          <div class="field">
+            <label for="expiryDate">Vigencia (opcional)</label>
+            <p-datepicker id="expiryDate" formControlName="expiryDate" dateFormat="dd/mm/yy" showIcon="true" styleClass="w-full" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="metadataJson">Metadatos (JSON, opcional)</label>
+          <textarea pTextarea id="metadataJson" formControlName="metadataJson" rows="3" placeholder='{"nro_operacion":"OP-001"}' styleClass="w-full"></textarea>
+        </div>
+
+        <p-button type="submit" label="Emitir y registrar en blockchain" icon="pi pi-check" [loading]="loading" styleClass="w-full" />
+      </form>
+    </p-card>
+  </div>
 </div>
 
-<p-dialog header="Certificado emitido" [(visible)]="showResult" [style]="{ width: '520px' }" [modal]="true">
+<p-dialog header="Certificado emitido" [(visible)]="showResult" [style]="{ width: '560px' }" [modal]="true">
   <ng-container *ngIf="issued">
+    <div class="qr-doc">
+      <div class="qr-box" *ngIf="issued.qrBase64">
+        <img [src]="'data:image/png;base64,' + issued.qrBase64" alt="Codigo QR de verificacion" />
+        <small>Escanéalo para autenticar el documento</small>
+      </div>
+      <div class="doc-box" *ngIf="issued.documentAvailable">
+        <img [src]="documentUrl(issued.uuid)" alt="Documento custodiado" />
+        <p-button label="Ver original" icon="pi pi-external-link" styleClass="p-button-sm p-button-outlined" (onClick)="openDoc(issued.uuid)" />
+      </div>
+    </div>
     <div class="detail">
       <div class="row"><span>UUID:</span><code>{{ issued.uuid }}</code></div>
       <div class="row"><span>Hash (SHA-256):</span><code>{{ issued.documentHash }}</code></div>
       <div class="row"><span>Transacción:</span><code>{{ issued.txId }}</code></div>
       <div class="row"><span>Título:</span><b>{{ issued.title }}</b></div>
+      <div class="row"><span>Titular:</span>{{ issued.holderName }}</div>
+      <div class="row"><span>CI / DNI:</span>{{ issued.holderDni }}</div>
+      <div class="row"><span>Nacimiento:</span>{{ issued.holderDateOfBirth }}</div>
       <div class="row"><span>Estado:</span>{{ issued.status }}</div>
       <p-divider />
-      <p class="note">Registrado en la cadena de bloques. El codigo QR se genera a partir de la URL de verificacion.</p>
+      <p class="note">Registrado en la cadena de bloques y documento original custodiado. El QR lleva a la URL de verificacion.</p>
     </div>
   </ng-container>
   <ng-template #footer>

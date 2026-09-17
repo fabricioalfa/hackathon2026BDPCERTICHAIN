@@ -17,6 +17,7 @@
           <th>Título</th>
           <th>Tipo</th>
           <th>Titular</th>
+          <th>CI / DNI</th>
           <th>Estado</th>
           <th>Emisión</th>
         </tr>
@@ -27,6 +28,7 @@
           <td>{{ c.title }}</td>
           <td>{{ c.docType }}</td>
           <td>{{ c.holderName }}</td>
+          <td>{{ c.holderDni }}</td>
           <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
           <td>{{ c.issueDate | date: 'dd/MM/yyyy HH:mm' }}</td>
         </tr>

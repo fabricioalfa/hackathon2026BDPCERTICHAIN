@@ -35,6 +35,8 @@ app:
   jwt:
     secret: ${JWT_SECRET:certichain-bdp-secret-key-debe-cambiarse-en-produccion-2026}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  # Storage local de documentos custodiados
+  documents-dir: ${DOCUMENTS_DIR:/app/documents}
 
 # Servicios externos
 frontend:

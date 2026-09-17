@@ -12,10 +12,13 @@ public record CertificateResponse(
         String docType,
         String holderDni,
         String holderName,
+        String holderDateOfBirth,
         Instant issueDate,
         Instant expiryDate,
         String status,
         String qrUrl,
+        String qrBase64,
+        boolean documentAvailable,
         String issuedBy
 ) {
     public static CertificateResponse from(Certificate c) {
@@ -27,10 +30,13 @@ public record CertificateResponse(
                 c.getDocType(),
                 c.getHolderDni(),
                 c.getHolderName(),
+                c.getHolderDateOfBirth(),
                 c.getIssueDate(),
                 c.getExpiryDate(),
                 c.getStatus(),
                 c.getQrUrl(),
+                null,
+                c.getDocumentFile() != null && !c.getDocumentFile().isBlank(),
                 c.getIssuedBy() != null ? c.getIssuedBy().getUsername() : null
         );
     }
