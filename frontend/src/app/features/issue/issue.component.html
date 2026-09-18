@@ -11,7 +11,7 @@
 <div class="issue-wrapper">
   <div class="grid-main">
     <!-- Panel 1: Subida del documento -->
-    <p-card header="1 · Documento a certificar" subheader="Sube una fotocopia o escaneo del carnet de identidad">
+    <p-card header="1 · Documento a certificar" subheader="Sube una fotocopia, escaneo o PDF del carnet de identidad">
       <div
         class="dropzone"
         [class.dragging]="dragging"
@@ -21,14 +21,19 @@
         (drop)="onDrop($event)"
         *ngIf="!previewUrl"
       >
-        <input #fileInput type="file" accept="image/*" hidden (change)="onFilePicked($event)" />
+        <input #fileInput type="file" accept="image/*,application/pdf,.pdf" hidden (change)="onFilePicked($event)" />
         <i class="pi pi-images icon"></i>
         <p class="title">Arrastra la fotocopia aquí o haz clic para seleccionar</p>
-        <small>JPG, PNG, WebP o TIFF · hasta 10 MB</small>
+        <small>JPG, PNG, WebP, TIFF o PDF · hasta 10 MB</small>
       </div>
 
       <div class="doc-preview" *ngIf="previewUrl">
-        <img [src]="previewUrl" alt="Vista previa del documento" />
+        <img *ngIf="!isPdfFile" [src]="previewUrl" alt="Vista previa del documento" />
+        <div class="pdf-chip" *ngIf="isPdfFile">
+          <i class="pi pi-file-pdf"></i>
+          <span>{{ selectedFile?.name }}</span>
+          <small>Documento PDF escaneado</small>
+        </div>
         <div class="preview-actions">
           <p-button icon="pi pi-replay" label="Relanzar OCR" styleClass="p-button-sm p-button-text" (onClick)="runOcr()" [loading]="ocrLoading" />
           <p-button icon="pi pi-times" label="Quitar" styleClass="p-button-sm p-button-danger p-button-text" (onClick)="clearFile()" />
@@ -112,15 +117,36 @@
         </div>
 
         <div class="grid2">
-          <div class="field">
-            <label for="holderDni2">CI / DNI del titular</label>
-            <input pInputText id="holderDni2" formControlName="holderDni" placeholder="1234567" />
-          </div>
-          <div class="field">
-            <label for="holderName2">Nombre del titular</label>
-            <input pInputText id="holderName2" formControlName="holderName" placeholder="Juan Perez" />
-          </div>
+<div class="field">
+          <label for="holderDni2">CI / DNI del titular</label>
+          <input pInputText id="holderDni2" formControlName="holderDni" placeholder="1234567" />
         </div>
+        <div class="field">
+          <label for="holderName2">Nombre del titular</label>
+          <input pInputText id="holderName2" formControlName="holderName" placeholder="Juan Perez" />
+        </div>
+      </div>
+
+      <div class="dup-alert" *ngIf="form.value.holderDni && existingCerts.length">
+        <div class="dup-alert-title" [class.is-duplicate]="alreadyEmitted()">
+          <i class="pi" [class]="alreadyEmitted() ? 'pi-exclamation-circle' : 'pi-info-circle'"></i>
+          {{ alreadyEmitted() ? 'Esta persona ya tiene documentos emitidos y respaldados' : 'Documentos ya emitidos para este CI' }}
+        </div>
+        <table class="dup-table">
+          <thead>
+            <tr><th>Título</th><th>Tipo</th><th>Estado</th><th>Emisión</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ec of existingCerts">
+              <td>{{ ec.title }}</td>
+              <td>{{ ec.docType }}</td>
+              <td><p-tag [value]="ec.status" [severity]="ec.status === 'ACTIVE' ? 'success' : 'warn'" /></td>
+              <td>{{ ec.issueDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="hint" *ngIf="checkingExisting"><i class="pi pi-spin pi-spinner" style="margin-right: 0.4rem"></i>Verificando registro…</p>
+      </div>
 
         <div class="grid2">
           <div class="field">
@@ -138,7 +164,8 @@
           <textarea pTextarea id="metadataJson" formControlName="metadataJson" rows="3" placeholder='{"nro_operacion":"OP-001"}' styleClass="w-full"></textarea>
         </div>
 
-        <p-button type="submit" label="Emitir y registrar en blockchain" icon="pi pi-check" [loading]="loading" styleClass="w-full" />
+        <p-button type="submit" label="Emitir y registrar en blockchain" icon="pi pi-check" [loading]="loading" [disabled]="alreadyEmitted()" styleClass="w-full" />
+      <small *ngIf="alreadyEmitted()" style="display:block;margin-top:0.5rem;color:#dc2626"><i class="pi pi-exclamation-triangle" style="margin-right:0.4rem"></i>No se puede emitir: esta persona ya tiene un documento emitido y respaldado.</small>
       </form>
     </p-card>
   </div>

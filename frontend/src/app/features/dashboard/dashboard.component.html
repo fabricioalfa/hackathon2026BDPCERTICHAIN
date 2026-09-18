@@ -3,6 +3,7 @@
     <h2 style="margin: 0">CERTICHAIN BDP · Dashboard</h2>
   </ng-template>
   <ng-template #end>
+    <p-button label="Actualizar" icon="pi pi-refresh" styleClass="p-button-text mr-2" [loading]="loading" (onClick)="load()" />
     <p-button label="Emitir certificado" icon="pi pi-plus" styleClass="p-button-primary mr-2" (onClick)="goTo('/issue')" />
     <p-button label="Salir" icon="pi pi-sign-out" styleClass="p-button-text" (onClick)="logout()" />
   </ng-template>
@@ -10,7 +11,16 @@
 
 <div class="grid">
   <p-card header="Certificados emitidos">
-    <p-table [value]="certificates" [paginator]="true" [rows]="8" styleClass="p-datatable-sm">
+    <div class="loading-center" *ngIf="loading">
+      <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="3" />
+      <p style="margin-top:0.5rem">Cargando certificados…</p>
+    </div>
+    <div class="error-alert" *ngIf="error && !loading">
+      <i class="pi pi-exclamation-triangle" style="margin-right:0.4rem"></i>
+      {{ error }}
+      <p-button label="Reintentar" icon="pi pi-refresh" styleClass="p-button-sm p-button-outlined ml-2" (onClick)="load()" />
+    </div>
+    <p-table [value]="certificates" [paginator]="true" [rows]="8" styleClass="p-datatable-sm" *ngIf="!loading && !error">
       <ng-template #header>
         <tr>
           <th>UUID</th>
@@ -31,6 +41,11 @@
           <td>{{ c.holderDni }}</td>
           <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
           <td>{{ c.issueDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7" style="text-align:center">No hay certificados emitidos</td>
         </tr>
       </ng-template>
     </p-table>

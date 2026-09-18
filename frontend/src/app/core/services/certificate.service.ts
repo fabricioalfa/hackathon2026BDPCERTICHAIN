@@ -45,6 +45,12 @@ export class CertificateService {
     return this.http.get<Certificate[]>(`${environment.apiUrl}/api/certificates`);
   }
 
+  findByDni(dni: string) {
+    return this.http.get<Certificate[]>(`${environment.apiUrl}/api/certificates`, {
+      params: new HttpParams().set('dni', dni)
+    });
+  }
+
   findByUuid(uuid: string) {
     return this.http.get<Certificate>(`${environment.apiUrl}/api/certificates/${uuid}`);
   }

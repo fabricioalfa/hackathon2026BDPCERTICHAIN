@@ -12,7 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -39,8 +45,11 @@ public class CertificateController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar certificados", description = "Devuelve todos los certificados emitidos")
-    public ResponseEntity<List<CertificateResponse>> findAll() {
+    @Operation(summary = "Listar certificados", description = "Devuelve todos los certificados emitidos, o los de un CI si se pasa ?dni=")
+    public ResponseEntity<List<CertificateResponse>> findAll(@RequestParam(name = "dni", required = false) String dni) {
+        if (dni != null && !dni.isBlank()) {
+            return ResponseEntity.ok(certificateService.findByDni(dni.trim()));
+        }
         return ResponseEntity.ok(certificateService.findAll());
     }
 

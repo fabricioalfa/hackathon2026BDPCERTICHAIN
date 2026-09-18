@@ -5,6 +5,7 @@ import bo.org.bdp.certichain.dto.IssueCertificateRequest;
 import bo.org.bdp.certichain.dto.VerificationResponse;
 import bo.org.bdp.certichain.entity.Certificate;
 import bo.org.bdp.certichain.entity.User;
+import bo.org.bdp.certichain.exception.DuplicateCertificateException;
 import bo.org.bdp.certichain.repository.CertificateRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ public class CertificateService {
      */
     @Transactional
     public CertificateResponse issue(IssueCertificateRequest request, User issuer) {
+        assertNoDuplicate(request);
         String uuid = "CC-" + UUID.randomUUID();
         String contentToHash = String.join("|",
                 uuid,
@@ -88,6 +90,32 @@ public class CertificateService {
 
         Certificate saved = certificateRepository.save(cert);
         return toResponse(saved);
+    }
+
+    /**
+     * Evita registrar dos veces a la misma persona. Bloquea si ya existe un
+     * certificado activo para el mismo CI (o, si no hay CI, para el mismo
+     * nombre completo) con documento respaldado.
+     */
+    private void assertNoDuplicate(IssueCertificateRequest request) {
+        String dni = request.holderDni() == null ? "" : request.holderDni().trim();
+        String name = request.holderName() == null ? "" : request.holderName().trim();
+        List<Certificate> existing;
+        if (!dni.isEmpty()) {
+            existing = certificateRepository.findByHolderDni(dni);
+        } else if (!name.isEmpty()) {
+            existing = certificateRepository.findByHolderNameIgnoreCase(name);
+        } else {
+            return;
+        }
+        boolean backed = existing.stream()
+                .anyMatch(c -> "ACTIVE".equals(c.getStatus())
+                        && c.getDocumentFile() != null && !c.getDocumentFile().isBlank());
+        if (backed) {
+            throw new DuplicateCertificateException(
+                    "Ya existe un documento emitido y respaldado para " + (dni.isEmpty() ? name : "el CI/DNI " + dni)
+                            + ". No se permite una nueva emisión.");
+        }
     }
 
     /**
@@ -131,6 +159,13 @@ public class CertificateService {
     @Transactional(readOnly = true)
     public List<CertificateResponse> findAll() {
         return certificateRepository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CertificateResponse> findByDni(String dni) {
+        return certificateRepository.findByHolderDni(dni).stream()
                 .map(this::toResponse)
                 .toList();
     }

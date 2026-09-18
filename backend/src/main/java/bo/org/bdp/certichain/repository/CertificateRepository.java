@@ -11,4 +11,6 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     List<Certificate> findByHolderDni(String holderDni);
     List<Certificate> findByDocType(String docType);
     List<Certificate> findByStatus(String status);
+    List<Certificate> findByHolderNameIgnoreCase(String holderName);
+    boolean existsByHolderDni(String holderDni);
 }

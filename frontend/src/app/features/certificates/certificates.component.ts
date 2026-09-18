@@ -10,10 +10,11 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { ToastModule } from 'primeng/toast';
 import { DividerModule } from 'primeng/divider';
 import { MessageService } from 'primeng/api';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-certificates',
-  imports: [CommonModule, ButtonModule, TableModule, TagModule, DialogModule, ToolbarModule, ToastModule, DividerModule],
+  imports: [CommonModule, ButtonModule, TableModule, TagModule, DialogModule, ToolbarModule, ToastModule, DividerModule, ProgressSpinnerModule],
   providers: [MessageService],
   templateUrl: './certificates.component.html',
   styleUrl: './certificates.component.css'
@@ -22,6 +23,8 @@ export class CertificatesComponent implements OnInit {
   certificates: Certificate[] = [];
   selected: Certificate | null = null;
   showDetail = false;
+  loading = true;
+  error: string | null = null;
 
   constructor(
     readonly certService: CertificateService,
@@ -34,7 +37,24 @@ export class CertificatesComponent implements OnInit {
   }
 
   load() {
-    this.certService.findAll().subscribe((certs) => (this.certificates = certs));
+    this.loading = true;
+    this.error = null;
+    this.certService.findAll().subscribe({
+      next: (certs) => {
+        this.certificates = certs;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.loading = false;
+        if (err.status === 401) {
+          this.messageService.add({ severity: 'error', summary: 'Sesión expirada', detail: 'Por favor inicia sesión de nuevo' });
+          this.auth.logout();
+        } else {
+          this.error = err.error?.message || 'No se pudo cargar la lista de certificados';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: this.error ?? undefined });
+        }
+      }
+    });
   }
 
   view(cert: Certificate) {

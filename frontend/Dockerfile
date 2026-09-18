@@ -1,10 +1,13 @@
 # ---- Etapa 1: build Angular ----
 FROM node:22-alpine AS build
 WORKDIR /app
+ENV COREPACK_ENABLE_STRICT=0
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+RUN npm config set strict-ssl false && npm install -g npm@10
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 COPY . .
-RUN npm run build -- --configuration production
+RUN npx ng build --configuration production
 
 # ---- Etapa 2: servidor Nginx ----
 FROM nginx:1.27-alpine

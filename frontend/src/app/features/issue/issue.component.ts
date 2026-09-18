@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CertificateService, Certificate } from '../../core/services/certificate.service';
@@ -55,7 +55,7 @@ interface DocType {
   templateUrl: './issue.component.html',
   styleUrl: './issue.component.css'
 })
-export class IssueComponent {
+export class IssueComponent implements OnInit, OnDestroy {
   docTypes: DocType[] = [
     { label: 'Carnet de identidad', value: 'IDENTIDAD' },
     { label: 'Garantía personal', value: 'GARANTIA_PERSONAL' },
@@ -71,6 +71,8 @@ export class IssueComponent {
   private router = inject(Router);
   private messageService = inject(MessageService);
 
+  private dniSub!: { unsubscribe(): void };
+
   form = this.fb.group({
     title: ['', Validators.required],
     docType: ['IDENTIDAD', Validators.required],
@@ -81,9 +83,21 @@ export class IssueComponent {
     metadataJson: ['']
   });
 
+  ngOnInit() {
+    this.dniSub = this.form.controls.holderDni.valueChanges.subscribe(() => this.checkExistingByDni());
+  }
+
+  ngOnDestroy() {
+    this.dniSub?.unsubscribe();
+  }
+
   loading = false;
   issued: Certificate | null = null;
   showResult = false;
+
+  // Prevalidación de duplicados: documentos ya emitidos para el CI detectado
+  existingCerts: Certificate[] = [];
+  checkingExisting = false;
 
   // Subida de documento + OCR
   selectedFile: File | null = null;
@@ -92,6 +106,7 @@ export class IssueComponent {
   dragging = false;
   ocrLoading = false;
   ocrResult: OcrResult | null = null;
+  isPdfFile = false;
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
@@ -117,8 +132,12 @@ export class IssueComponent {
   }
 
   handleFile(file: File) {
-    if (!file.type.startsWith('image/')) {
-      this.messageService.add({ severity: 'warn', summary: 'Archivo no válido', detail: 'Solo se admiten imágenes (JPG, PNG, WebP, TIFF)' });
+    const isImage = file.type.startsWith('image/');
+    const isPdf =
+      file.type === 'application/pdf' ||
+      file.name.toLowerCase().endsWith('.pdf');
+    if (!isImage && !isPdf) {
+      this.messageService.add({ severity: 'warn', summary: 'Archivo no válido', detail: 'Solo se admiten imágenes (JPG, PNG, WebP, TIFF) o PDF' });
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
@@ -126,12 +145,35 @@ export class IssueComponent {
       return;
     }
     this.selectedFile = file;
+    this.isPdfFile = isPdf;
     if (this.previewUrl) {
       URL.revokeObjectURL(this.previewUrl);
     }
     this.previewUrl = URL.createObjectURL(file);
     this.readAsBase64(file);
-    this.runOcr();
+    if (isImage) {
+      this.runOcr();
+    } else {
+      this.readPdfAndRunOcr(file);
+    }
+  }
+
+  private readPdfAndRunOcr(file: File) {
+    this.ocrLoading = true;
+    this.ocrResult = null;
+    this.ocrService.extract(file).subscribe({
+      next: (res) => {
+        this.ocrLoading = false;
+        this.ocrResult = res;
+        this.applyOcrFields(res);
+      },
+      error: (err) => {
+        this.ocrLoading = false;
+        this.ocrResult = null;
+        const msg = err.error?.detail || 'No se pudo leer el documento PDF. Verifica que sean páginas escaneadas legibles.';
+        this.messageService.add({ severity: 'error', summary: 'Error de OCR', detail: msg });
+      }
+    });
   }
 
   private readAsBase64(file: File) {
@@ -191,6 +233,8 @@ export class IssueComponent {
     this.fileBase64 = null;
     this.ocrResult = null;
     this.ocrLoading = false;
+    this.isPdfFile = false;
+    this.existingCerts = [];
     this.form.patchValue({ holderDni: '', holderName: '', holderDateOfBirth: '' });
     if (this.form.value.title?.startsWith('Carnet de identidad')) {
       this.form.patchValue({ title: '' });
@@ -217,6 +261,42 @@ export class IssueComponent {
       this.messageService.add({ severity: 'warn', summary: 'Campos requeridos', detail: 'Completa título y tipo de documento' });
       return;
     }
+    if (this.alreadyEmitted()) {
+      this.messageService.add({ severity: 'warn', summary: 'Registro ya existente', detail: 'Esta persona ya tiene un documento emitido y respaldado. No se permite una nueva emisión.' });
+      return;
+    }
+    this.emit();
+  }
+
+  hasBackedDocument(cert: Certificate): boolean {
+    return cert.documentAvailable;
+  }
+
+  alreadyEmitted(): boolean {
+    return this.existingCerts.some(c => c.documentAvailable);
+  }
+
+  checkExistingByDni() {
+    const dni = this.form.value.holderDni?.trim() ?? '';
+    if (!dni) {
+      this.existingCerts = [];
+      this.checkingExisting = false;
+      return;
+    }
+    this.checkingExisting = true;
+    this.certService.findByDni(dni).subscribe({
+      next: (certs) => {
+        this.existingCerts = certs;
+        this.checkingExisting = false;
+      },
+      error: () => {
+        this.existingCerts = [];
+        this.checkingExisting = false;
+      }
+    });
+  }
+
+  private emit() {
     this.loading = true;
     const v = this.form.value;
     this.certService
@@ -236,9 +316,10 @@ export class IssueComponent {
           this.issued = cert;
           this.showResult = true;
         },
-        error: () => {
+        error: (err) => {
           this.loading = false;
-          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo emitir el certificado' });
+          const msg = err.error?.message || 'No se pudo emitir el certificado';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: msg });
         }
       });
   }
@@ -256,6 +337,7 @@ export class IssueComponent {
     this.clearFile();
     this.showResult = false;
     this.issued = null;
+    this.existingCerts = [];
   }
 
   logout() {
