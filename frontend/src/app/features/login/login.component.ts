@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
@@ -13,13 +12,11 @@ import { CardModule } from 'primeng/card';
   selector: 'app-login',
   imports: [
     ReactiveFormsModule,
-    ToastModule,
     InputTextModule,
     PasswordModule,
     ButtonModule,
     CardModule
   ],
-  providers: [MessageService],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })

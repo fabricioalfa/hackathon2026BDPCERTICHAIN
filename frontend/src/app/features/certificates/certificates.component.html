@@ -1,56 +1,56 @@
-<p-toolbar>
-  <ng-template #start>
-    <h2 style="margin: 0">Certificados</h2>
-  </ng-template>
-  <ng-template #end>
-    <p-button label="Actualizar" icon="pi pi-refresh" styleClass="p-button-text mr-2" [loading]="loading" (onClick)="load()" />
-    <p-button label="Salir" icon="pi pi-sign-out" styleClass="p-button-text" (onClick)="logout()" />
-  </ng-template>
-</p-toolbar>
+<div class="page">
+  <div class="page-header">
+    <h2>Certificados</h2>
+    <p class="page-sub">Consulta, QR y documento custodiado de todos los certificados emitidos</p>
+  </div>
 
-<div class="loading-center" *ngIf="loading" style="margin:2rem 0">
-  <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="3" />
-  <p style="margin-top:0.5rem">Cargando certificados…</p>
-</div>
-<div class="error-alert" *ngIf="error && !loading" style="margin:1rem">
-  <i class="pi pi-exclamation-triangle" style="margin-right:0.4rem"></i>
-  {{ error }}
-  <p-button label="Reintentar" icon="pi pi-refresh" styleClass="p-button-sm p-button-outlined ml-2" (onClick)="load()" />
-</div>
+  <div class="loading-center" *ngIf="loading">
+    <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="3" />
+    <p style="margin-top:0.5rem">Cargando certificados…</p>
+  </div>
 
-<p-table [value]="certificates" [paginator]="true" [rows]="10" styleClass="p-datatable-sm" *ngIf="!loading && !error">
-  <ng-template #header>
-    <tr>
-      <th>UUID</th>
-      <th>Título</th>
-      <th>Tipo</th>
-      <th>Titular</th>
-      <th>CI / DNI</th>
-      <th>Nacimiento</th>
-      <th>Estado</th>
-      <th style="width: 8rem">Acciones</th>
-    </tr>
-  </ng-template>
-  <ng-template #body let-c>
-    <tr>
-      <td><code>{{ c.uuid }}</code></td>
-      <td>{{ c.title }}</td>
-      <td>{{ c.docType }}</td>
-      <td>{{ c.holderName }}</td>
-      <td>{{ c.holderDni }}</td>
-      <td>{{ c.holderDateOfBirth }}</td>
-      <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
-      <td>
-        <p-button icon="pi pi-eye" styleClass="p-button-sm" [rounded]="true" (onClick)="view(c)" />
-      </td>
-    </tr>
-  </ng-template>
-  <ng-template #emptymessage>
-    <tr>
-      <td colspan="8" style="text-align:center">No hay certificados</td>
-    </tr>
-  </ng-template>
-</p-table>
+  <div class="error-alert" *ngIf="error && !loading">
+    <i class="pi pi-exclamation-triangle" style="margin-right:0.4rem"></i>
+    {{ error }}
+    <p-button label="Reintentar" icon="pi pi-refresh" styleClass="p-button-sm p-button-outlined ml-2" (onClick)="load()" />
+  </div>
+
+  <p-card *ngIf="!loading && !error">
+    <p-table [value]="certificates" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th>UUID</th>
+          <th>Título</th>
+          <th>Tipo</th>
+          <th>Titular</th>
+          <th>CI / DNI</th>
+          <th>Estado</th>
+          <th style="width: 8rem">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-c>
+        <tr>
+          <td><code>{{ c.uuid }}</code></td>
+          <td>{{ c.title }}</td>
+          <td>{{ c.docType }}</td>
+          <td>{{ c.holderName }}</td>
+          <td>{{ c.holderDni }}</td>
+          <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
+          <td>
+            <p-button icon="pi pi-eye" label="Detalle" styleClass="p-button-sm" (onClick)="view(c)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <div class="table-empty">
+          <i class="pi pi-inbox" style="font-size: 2.5rem; color: #94a3b8"></i>
+          <h3>Aún no hay certificados</h3>
+          <p>Emití el primer certificado para verlo aquí con su QR y documento custodiado.</p>
+        </div>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
 
 <p-dialog header="Detalle del certificado" [(visible)]="showDetail" [style]="{ width: '600px' }" [modal]="true">
   <ng-container *ngIf="selected">

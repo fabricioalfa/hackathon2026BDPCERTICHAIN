@@ -4,17 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { CertificateService, Certificate, VerificationResult } from '../../core/services/certificate.service';
 import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
-import { AvatarModule } from 'primeng/avatar';
 
 @Component({
   selector: 'app-verify',
-  imports: [CommonModule, FormsModule, ToastModule, InputTextModule, ButtonModule, CardModule, TagModule, AvatarModule],
-  providers: [MessageService],
+  imports: [CommonModule, FormsModule, InputTextModule, ButtonModule, CardModule, TagModule],
   templateUrl: './verify.component.html',
   styleUrl: './verify.component.css'
 })

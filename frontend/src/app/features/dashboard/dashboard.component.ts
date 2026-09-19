@@ -3,10 +3,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { CertificateService, Certificate } from '../../core/services/certificate.service';
 import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
-import { ToolbarModule } from 'primeng/toolbar';
 import { TagModule } from 'primeng/tag';
 import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -14,8 +12,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, CardModule, ButtonModule, ToolbarModule, TagModule, TableModule, ToastModule, ProgressSpinnerModule],
-  providers: [MessageService],
+  imports: [CommonModule, CardModule, ButtonModule, TagModule, TableModule, ProgressSpinnerModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -54,10 +51,6 @@ export class DashboardComponent implements OnInit {
         }
       }
     });
-  }
-
-  logout() {
-    this.auth.logout();
   }
 
   goTo(path: string) {

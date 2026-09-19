@@ -1,0 +1,25 @@
+<div class="layout">
+  <p-menubar [model]="items">
+    <ng-template pTemplate="start">
+      <span class="brand" (click)="goDashboard()">
+        <i class="pi pi-shield"></i>
+        <b>CERTICHAIN</b>
+        <span class="brand-bdp">BDP</span>
+      </span>
+    </ng-template>
+    <ng-template pTemplate="end">
+      <div class="user-chip">
+        <p-avatar icon="pi pi-user" shape="circle" />
+        <div class="user-meta">
+          <span class="user-name">{{ username }}</span>
+          <span class="user-role" *ngIf="role">{{ role }}</span>
+        </div>
+        <p-button icon="pi pi-sign-out" label="Salir" styleClass="p-button-text p-button-sm" (onClick)="confirmLogout()" />
+      </div>
+    </ng-template>
+  </p-menubar>
+
+  <main class="layout-content">
+    <router-outlet />
+  </main>
+</div>

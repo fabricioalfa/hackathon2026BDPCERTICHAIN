@@ -10,10 +10,17 @@ export interface AuthResponse {
   role: string;
 }
 
+const TOKEN_KEY = 'certichain_token';
+const USER_KEY = 'certichain_user';
+const ROLE_KEY = 'certichain_role';
+const FULL_NAME_KEY = 'certichain_full_name';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly token = signal<string | null>(localStorage.getItem('certichain_token'));
-  private readonly username = signal<string | null>(localStorage.getItem('certichain_user'));
+  private readonly token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  private readonly username = signal<string | null>(localStorage.getItem(USER_KEY));
+  private readonly role = signal<string | null>(localStorage.getItem(ROLE_KEY));
+  private readonly fullName = signal<string | null>(localStorage.getItem(FULL_NAME_KEY));
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -25,22 +32,42 @@ export class AuthService {
     return !!this.token();
   }
 
+  get usernameValue(): string | null {
+    return this.username();
+  }
+
+  get roleValue(): string | null {
+    return this.role();
+  }
+
+  get fullNameValue(): string | null {
+    return this.fullName();
+  }
+
   login(username: string, password: string) {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/login`, { username, password });
   }
 
   saveSession(auth: AuthResponse) {
-    localStorage.setItem('certichain_token', auth.token);
-    localStorage.setItem('certichain_user', auth.username);
+    localStorage.setItem(TOKEN_KEY, auth.token);
+    localStorage.setItem(USER_KEY, auth.username);
+    localStorage.setItem(ROLE_KEY, auth.role ?? '');
+    localStorage.setItem(FULL_NAME_KEY, auth.fullName ?? '');
     this.token.set(auth.token);
     this.username.set(auth.username);
+    this.role.set(auth.role ?? '');
+    this.fullName.set(auth.fullName ?? '');
   }
 
   logout() {
-    localStorage.removeItem('certichain_token');
-    localStorage.removeItem('certichain_user');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(ROLE_KEY);
+    localStorage.removeItem(FULL_NAME_KEY);
     this.token.set(null);
     this.username.set(null);
+    this.role.set(null);
+    this.fullName.set(null);
     this.router.navigate(['/login']);
   }
 }

@@ -1,6 +1,22 @@
+.page-header {
+  max-width: 1080px;
+  margin: 0 auto 1rem;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.page-sub {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
 .issue-wrapper {
   max-width: 1080px;
-  margin: 1.5rem auto;
+  margin: 0 auto;
   padding: 0 1rem;
 }
 

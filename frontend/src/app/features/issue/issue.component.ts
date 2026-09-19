@@ -1,10 +1,10 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CertificateService, Certificate } from '../../core/services/certificate.service';
 import { OcrService, OcrResult } from '../../core/services/ocr.service';
-import { AuthService } from '../../core/services/auth.service';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
@@ -12,13 +12,11 @@ import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { ToolbarModule } from 'primeng/toolbar';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TagModule } from 'primeng/tag';
 import { AccordionModule } from 'primeng/accordion';
-import { CommonModule } from '@angular/common';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -44,14 +42,12 @@ interface DocType {
     DatePickerModule,
     ButtonModule,
     CardModule,
-    ToolbarModule,
     DialogModule,
     DividerModule,
     ProgressSpinnerModule,
     TagModule,
     AccordionModule
   ],
-  providers: [MessageService],
   templateUrl: './issue.component.html',
   styleUrl: './issue.component.css'
 })
@@ -67,9 +63,9 @@ export class IssueComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private certService = inject(CertificateService);
   private ocrService = inject(OcrService);
-  private auth = inject(AuthService);
   private router = inject(Router);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
 
   private dniSub!: { unsubscribe(): void };
 
@@ -265,7 +261,30 @@ export class IssueComponent implements OnInit, OnDestroy {
       this.messageService.add({ severity: 'warn', summary: 'Registro ya existente', detail: 'Esta persona ya tiene un documento emitido y respaldado. No se permite una nueva emisión.' });
       return;
     }
-    this.emit();
+    const v = this.form.value;
+    const titular = v.holderName || v.holderDni || 'sin titular';
+    this.confirmationService.confirm({
+      key: 'global',
+      header: 'Emitir certificado',
+      message: `Se registrará «${v.title}» a nombre de ${titular} en la cadena de bloques y el documento quedará custodiado. ¿Deseas continuar?`,
+      icon: 'pi pi-shield',
+      acceptLabel: 'Sí, emitir',
+      rejectLabel: 'Cancelar',
+      accept: () => this.emit()
+    });
+  }
+
+  clearFilePrompt() {
+    if (!this.previewUrl) return;
+    this.confirmationService.confirm({
+      key: 'global',
+      header: 'Quitar documento',
+      message: 'Se descartará la fotocopia cargada y los datos extraídos por el OCR. Esta acción no se puede deshacer.',
+      icon: 'pi pi-times-circle',
+      acceptLabel: 'Sí, quitar',
+      rejectLabel: 'Cancelar',
+      accept: () => this.clearFile()
+    });
   }
 
   hasBackedDocument(cert: Certificate): boolean {
@@ -314,7 +333,11 @@ export class IssueComponent implements OnInit, OnDestroy {
         next: (cert) => {
           this.loading = false;
           this.issued = cert;
-          this.showResult = true;
+          // Un tick extra garantiza que la detección de cambios termine de
+          // renderizar el QR antes de abrir el diálogo de resultado.
+          setTimeout(() => {
+            this.showResult = true;
+          }, 0);
         },
         error: (err) => {
           this.loading = false;
@@ -338,10 +361,6 @@ export class IssueComponent implements OnInit, OnDestroy {
     this.showResult = false;
     this.issued = null;
     this.existingCerts = [];
-  }
-
-  logout() {
-    this.auth.logout();
   }
 
   back() {

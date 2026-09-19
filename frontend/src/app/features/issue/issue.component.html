@@ -1,14 +1,8 @@
-<p-toolbar>
-  <ng-template #start>
-    <h2 style="margin: 0">Emitir certificado</h2>
-  </ng-template>
-  <ng-template #end>
-    <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-text" (onClick)="back()" />
-    <p-button label="Salir" icon="pi pi-sign-out" styleClass="p-button-text" (onClick)="logout()" />
-  </ng-template>
-</p-toolbar>
-
 <div class="issue-wrapper">
+  <div class="page-header">
+    <h2>Emitir certificado</h2>
+    <p class="page-sub">Carga el documento, verifica los datos extraídos por el OCR y regístralo en la cadena de bloques</p>
+  </div>
   <div class="grid-main">
     <!-- Panel 1: Subida del documento -->
     <p-card header="1 · Documento a certificar" subheader="Sube una fotocopia, escaneo o PDF del carnet de identidad">
@@ -36,7 +30,7 @@
         </div>
         <div class="preview-actions">
           <p-button icon="pi pi-replay" label="Relanzar OCR" styleClass="p-button-sm p-button-text" (onClick)="runOcr()" [loading]="ocrLoading" />
-          <p-button icon="pi pi-times" label="Quitar" styleClass="p-button-sm p-button-danger p-button-text" (onClick)="clearFile()" />
+          <p-button icon="pi pi-times" label="Quitar" styleClass="p-button-sm p-button-danger p-button-text" (onClick)="clearFilePrompt()" />
         </div>
       </div>
 
@@ -117,36 +111,36 @@
         </div>
 
         <div class="grid2">
-<div class="field">
-          <label for="holderDni2">CI / DNI del titular</label>
-          <input pInputText id="holderDni2" formControlName="holderDni" placeholder="1234567" />
+          <div class="field">
+            <label for="holderDni2">CI / DNI del titular</label>
+            <input pInputText id="holderDni2" formControlName="holderDni" placeholder="1234567" />
+          </div>
+          <div class="field">
+            <label for="holderName2">Nombre del titular</label>
+            <input pInputText id="holderName2" formControlName="holderName" placeholder="Juan Perez" />
+          </div>
         </div>
-        <div class="field">
-          <label for="holderName2">Nombre del titular</label>
-          <input pInputText id="holderName2" formControlName="holderName" placeholder="Juan Perez" />
-        </div>
-      </div>
 
-      <div class="dup-alert" *ngIf="form.value.holderDni && existingCerts.length">
-        <div class="dup-alert-title" [class.is-duplicate]="alreadyEmitted()">
-          <i class="pi" [class]="alreadyEmitted() ? 'pi-exclamation-circle' : 'pi-info-circle'"></i>
-          {{ alreadyEmitted() ? 'Esta persona ya tiene documentos emitidos y respaldados' : 'Documentos ya emitidos para este CI' }}
+        <div class="dup-alert" *ngIf="form.value.holderDni && existingCerts.length">
+          <div class="dup-alert-title" [class.is-duplicate]="alreadyEmitted()">
+            <i class="pi" [class]="alreadyEmitted() ? 'pi-exclamation-circle' : 'pi-info-circle'"></i>
+            {{ alreadyEmitted() ? 'Esta persona ya tiene documentos emitidos y respaldados' : 'Documentos ya emitidos para este CI' }}
+          </div>
+          <table class="dup-table">
+            <thead>
+              <tr><th>Título</th><th>Tipo</th><th>Estado</th><th>Emisión</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let ec of existingCerts">
+                <td>{{ ec.title }}</td>
+                <td>{{ ec.docType }}</td>
+                <td><p-tag [value]="ec.status" [severity]="ec.status === 'ACTIVE' ? 'success' : 'warn'" /></td>
+                <td>{{ ec.issueDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="hint" *ngIf="checkingExisting"><i class="pi pi-spin pi-spinner" style="margin-right: 0.4rem"></i>Verificando registro…</p>
         </div>
-        <table class="dup-table">
-          <thead>
-            <tr><th>Título</th><th>Tipo</th><th>Estado</th><th>Emisión</th></tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let ec of existingCerts">
-              <td>{{ ec.title }}</td>
-              <td>{{ ec.docType }}</td>
-              <td><p-tag [value]="ec.status" [severity]="ec.status === 'ACTIVE' ? 'success' : 'warn'" /></td>
-              <td>{{ ec.issueDate | date: 'dd/MM/yyyy HH:mm' }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="hint" *ngIf="checkingExisting"><i class="pi pi-spin pi-spinner" style="margin-right: 0.4rem"></i>Verificando registro…</p>
-      </div>
 
         <div class="grid2">
           <div class="field">
@@ -165,7 +159,7 @@
         </div>
 
         <p-button type="submit" label="Emitir y registrar en blockchain" icon="pi pi-check" [loading]="loading" [disabled]="alreadyEmitted()" styleClass="w-full" />
-      <small *ngIf="alreadyEmitted()" style="display:block;margin-top:0.5rem;color:#dc2626"><i class="pi pi-exclamation-triangle" style="margin-right:0.4rem"></i>No se puede emitir: esta persona ya tiene un documento emitido y respaldado.</small>
+        <small *ngIf="alreadyEmitted()" style="display:block;margin-top:0.5rem;color:#dc2626"><i class="pi pi-exclamation-triangle" style="margin-right:0.4rem"></i>No se puede emitir: esta persona ya tiene un documento emitido y respaldado.</small>
       </form>
     </p-card>
   </div>
