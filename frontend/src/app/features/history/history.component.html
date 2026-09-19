@@ -1,0 +1,63 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h2>Historial de emisiones</h2>
+      <p class="page-sub">Trazabilidad de quién emitió cada certificado, con fecha y hora, tipo de documento y su sec. crédito</p>
+    </div>
+  </div>
+
+  <div class="loading-center" *ngIf="loading">
+    <p-progressspinner styleClass="w-3rem h-3rem" strokeWidth="3" />
+    <p style="margin-top:0.5rem">Cargando historial…</p>
+  </div>
+
+  <div class="error-alert" *ngIf="error && !loading">
+    <i class="pi pi-exclamation-triangle" style="margin-right:0.4rem"></i>
+    {{ error }}
+    <p-button label="Reintentar" icon="pi pi-refresh" styleClass="p-button-sm p-button-outlined ml-2" (onClick)="load()" />
+  </div>
+
+  <p-card class="table-card" *ngIf="!loading && !error">
+    <div class="search-box">
+      <div class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input pInputText type="text" #searchInput (input)="table.filterGlobal($event.target.value, 'contains')"
+               placeholder="Buscar por emisor, titular, tipo de documento o sec. crédito…" />
+      </div>
+    </div>
+
+    <p-table #table [value]="rows" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 25, 50]" styleClass="cc-table"
+             [globalFilterFields]="['issuedBy', 'issueDate', 'docType', 'holderName', 'secCredito']">
+      <ng-template #header>
+        <tr>
+          <th field="issuedBy">Emisor</th>
+          <th field="issueDate">Fecha y hora</th>
+          <th field="docType">Tipo de documento</th>
+          <th field="holderName">Titular</th>
+          <th field="secCredito">Sec. crédito</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-r>
+        <tr>
+          <td>
+            <div class="issuer-cell">
+              <p-avatar [label]="initialsOf(r.issuedBy)" shape="circle" styleClass="doc-avatar" />
+              <b>{{ r.issuedBy || '—' }}</b>
+            </div>
+          </td>
+          <td>{{ r.issueDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td><span class="type-label">{{ r.docType }}</span></td>
+          <td>{{ r.holderName || '—' }}</td>
+          <td><span class="credit-label">{{ r.secCredito }}</span></td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <div class="table-empty">
+          <i class="pi pi-inbox" style="font-size: 2.5rem; color: #94a3b8"></i>
+          <h3>Sin coincidencias</h3>
+          <p>No hay registros para el criterio de búsqueda ingresado.</p>
+        </div>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

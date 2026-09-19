@@ -1,6 +1,7 @@
 package bo.org.bdp.certichain.service;
 
 import bo.org.bdp.certichain.dto.CertificateResponse;
+import bo.org.bdp.certichain.dto.HistoryRecord;
 import bo.org.bdp.certichain.dto.IssueCertificateRequest;
 import bo.org.bdp.certichain.dto.VerificationResponse;
 import bo.org.bdp.certichain.entity.Certificate;
@@ -154,6 +155,19 @@ public class CertificateService {
     public List<CertificateResponse> findAll() {
         return certificateRepository.findAll().stream()
                 .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoryRecord> history() {
+        return certificateRepository.findAll().stream()
+                .map(c -> new HistoryRecord(
+                        c.getUuid(),
+                        c.getHolderName(),
+                        c.getHolderDni(),
+                        c.getDocType(),
+                        c.getIssueDate(),
+                        c.getIssuedBy() != null ? c.getIssuedBy().getUsername() : null))
                 .toList();
     }
 

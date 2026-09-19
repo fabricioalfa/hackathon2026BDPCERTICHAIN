@@ -37,6 +37,15 @@ export interface IssueCertificateRequest {
   base64Content?: string;
 }
 
+export interface HistoryRecord {
+  uuid: string;
+  holderName: string;
+  holderDni: string;
+  docType: string;
+  issueDate: string;
+  issuedBy: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CertificateService {
   constructor(private http: HttpClient) {}
@@ -65,6 +74,10 @@ export class CertificateService {
       params = params.set('hash', hash);
     }
     return this.http.get<VerificationResult>(`${environment.apiUrl}/api/public/verify`, { params });
+  }
+
+  historyPublic() {
+    return this.http.get<HistoryRecord[]>(`${environment.apiUrl}/api/public/history`);
   }
 
   documentUrl(uuid: string) {

@@ -1,6 +1,7 @@
 package bo.org.bdp.certichain.controller;
 
 import bo.org.bdp.certichain.dto.CertificateResponse;
+import bo.org.bdp.certichain.dto.HistoryRecord;
 import bo.org.bdp.certichain.dto.VerificationResponse;
 import bo.org.bdp.certichain.service.CertificateService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/public")
@@ -36,6 +39,13 @@ public class PublicController {
     @Operation(summary = "Consultar certificado publico", description = "Permite ver los datos del certificado desde el QR")
     public ResponseEntity<CertificateResponse> getPublicCertificate(@RequestParam String uuid) {
         return ResponseEntity.ok(certificateService.findByUuid(uuid));
+    }
+
+    @GetMapping("/history")
+    @Operation(summary = "Historial de emisiones",
+            description = "Devuelve el historial de certificados emitidos: emisor, fecha/hora, tipo de documento y titular")
+    public ResponseEntity<List<HistoryRecord>> history() {
+        return ResponseEntity.ok(certificateService.history());
     }
 
     @GetMapping("/certificate/{uuid}/document")

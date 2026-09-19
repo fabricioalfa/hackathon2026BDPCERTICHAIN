@@ -18,7 +18,8 @@ export const routes: Routes = [
         canDeactivate: [issueChangesGuard],
         loadComponent: () => import('./features/issue/issue.component').then(m => m.IssueComponent)
       },
-      { path: 'verify', loadComponent: () => import('./features/verify/verify.component').then(m => m.VerifyComponent) }
+      { path: 'verify', loadComponent: () => import('./features/verify/verify.component').then(m => m.VerifyComponent) },
+      { path: 'history', loadComponent: () => import('./features/history/history.component').then(m => m.HistoryComponent) }
     ]
   },
   { path: '**', redirectTo: '/dashboard' }

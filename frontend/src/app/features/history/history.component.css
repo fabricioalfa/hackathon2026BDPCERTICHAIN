@@ -1,0 +1,137 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.page-sub {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.loading-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+  color: #64748b;
+}
+
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+:host ::ng-deep .table-card {
+  border-radius: 16px;
+  border: 1px solid #e8ecf4;
+  box-shadow: none;
+  background: #ffffff;
+}
+
+:host ::ng-deep .table-card .p-card-body {
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.search-box .p-input-icon-left {
+  flex: 1;
+  max-width: 420px;
+}
+
+:host ::ng-deep .search-box .p-inputtext {
+  width: 100%;
+  border-radius: 10px;
+}
+
+:host ::ng-deep .cc-table .p-datatable-thead > tr > th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-top: 1px solid #e8ecf4;
+  border-bottom: 1px solid #e8ecf4;
+  padding: 0.75rem 1rem;
+}
+
+:host ::ng-deep .cc-table .p-datatable-tbody > tr {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+:host ::ng-deep .cc-table .p-datatable-tbody > tr > td {
+  padding: 0.85rem 1rem;
+  color: #334155;
+  font-size: 0.92rem;
+}
+
+.issuer-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.doc-avatar {
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.type-label {
+  font-weight: 600;
+  color: #475569;
+}
+
+.credit-label {
+  display: inline-flex;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.table-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #475569;
+}
+
+.table-empty h3 {
+  margin: 0.75rem 0 0.25rem;
+}
+
+.table-empty p {
+  margin: 0 0 1rem;
+  color: #64748b;
+}
