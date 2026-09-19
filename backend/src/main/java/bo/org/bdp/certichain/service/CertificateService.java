@@ -44,7 +44,7 @@ public class CertificateService {
 
     /**
      * Flujo de emision del MVP:
-     * 1) Calcular hash del documento (datos + imagen original).
+     * 1) Calcular hash de auditoria de los datos del titular (nombre|CI|nacimiento).
      * 2) Registrar el hash en blockchain (ledger).
      * 3) Custodiar el documento original en disco.
      * 4) Persistir metadatos en PostgreSQL.
@@ -54,16 +54,10 @@ public class CertificateService {
     public CertificateResponse issue(IssueCertificateRequest request, User issuer) {
         assertNoDuplicate(request);
         String uuid = "CC-" + UUID.randomUUID();
-        String contentToHash = String.join("|",
-                uuid,
-                request.title(),
-                request.docType(),
-                request.holderDni() == null ? "" : request.holderDni(),
-                request.holderName() == null ? "" : request.holderName(),
-                request.holderDateOfBirth() == null ? "" : request.holderDateOfBirth(),
-                request.metadataJson() == null ? "" : request.metadataJson(),
-                request.base64Content() == null ? "" : request.base64Content());
-        String hash = hashService.sha256(contentToHash);
+        String hash = hashService.sha256Holder(
+                request.holderName(),
+                request.holderDni(),
+                request.holderDateOfBirth());
 
         String txId = fabricService.registerCertificate(uuid, hash, issuer.getUsername());
 

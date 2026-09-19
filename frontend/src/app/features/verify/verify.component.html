@@ -1,18 +1,23 @@
 <div class="verify-wrapper">
-  <p-card header="Verificación de certificado" subheader="Consulta pública · CERTICHAIN BDP">
+  <div class="verify-head">
+    <h1>Verificación de certificado</h1>
+    <p>Consulta pública · CERTICHAIN BDP</p>
+  </div>
+
+  <p-card class="verify-card">
     <div class="field">
       <label for="uuid">UUID del certificado</label>
       <input pInputText id="uuid" [(ngModel)]="uuid" placeholder="CC-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" (keyup.enter)="verify()" />
       <small>Al ingresar por QR este campo se completa solo.</small>
     </div>
     <div class="field">
-      <label for="hash">Hash del documento (SHA-256, opcional)</label>
-      <input pInputText id="hash" [(ngModel)]="hash" placeholder="Si lo agregas, se valida la integridad total" (keyup.enter)="verify()" />
+      <label for="hash">Hash de auditoría (SHA-256 Nombre|CI|Nacimiento, opcional)</label>
+      <input pInputText id="hash" [(ngModel)]="hash" placeholder="Recalculalo con esos 3 datos: si alguien los alteró, no coincide" (keyup.enter)="verify()" />
     </div>
     <p-button label="Verificar" icon="pi pi-shield" [loading]="checking" styleClass="w-full" (onClick)="verify()" />
   </p-card>
 
-  <p-card *ngIf="result" [style]="{ 'margin-top': '1.5rem' }">
+  <p-card class="verify-card" *ngIf="result" [style]="{ 'margin-top': '1.5rem' }">
     <div class="valid-banner" [class.invalid]="!result.valid">
       <i class="pi" [ngClass]="result.valid ? 'pi-check-circle' : 'pi-times-circle'" style="font-size: 2rem"></i>
       <h3 style="margin: 0.5rem 0 0">{{ result.valid ? 'Documento válido' : 'Documento no válido' }}</h3>
@@ -44,5 +49,9 @@
         <div class="row"><span>Estado:</span><p-tag [value]="cert.status" [severity]="statusSeverity(cert.status)" /></div>
       </div>
     </ng-container>
+
+    <div class="verify-actions">
+      <p-button label="Verificar otro certificado" icon="pi pi-replay" styleClass="p-button-outlined" (onClick)="reset()" />
+    </div>
   </p-card>
 </div>

@@ -31,6 +31,38 @@ class HashServiceTest {
     }
 
     @Test
+    void sha256HolderEsEstableYRecalculable() {
+        String hash = service.sha256Holder("Juan Perez", "1234567", "01/01/1990");
+
+        assertThat(hash).hasSize(64).matches("[0-9a-f]{64}");
+        assertThat(service.sha256Holder("Juan Perez", "1234567", "01/01/1990")).isEqualTo(hash);
+        // Equivalente exacto: SHA-256("Juan Perez|1234567|01/01/1990")
+        assertThat(hash).isEqualTo(service.sha256("Juan Perez|1234567|01/01/1990"));
+    }
+
+    @Test
+    void sha256HolderRecortaEspacios() {
+        String limpio = service.sha256Holder("Juan Perez", "1234567", "01/01/1990");
+        String conEspacios = service.sha256Holder("  Juan Perez  ", "  1234567 ", " 01/01/1990 ");
+
+        assertThat(conEspacios).isEqualTo(limpio);
+    }
+
+    @Test
+    void sha256HolderDetectaAlteracionDeCualquierCampo() {
+        String base = service.sha256Holder("Juan Perez", "1234567", "01/01/1990");
+
+        assertThat(service.sha256Holder("Juan Peres", "1234567", "01/01/1990")).isNotEqualTo(base);
+        assertThat(service.sha256Holder("Juan Perez", "1234568", "01/01/1990")).isNotEqualTo(base);
+        assertThat(service.sha256Holder("Juan Perez", "1234567", "02/02/1990")).isNotEqualTo(base);
+    }
+
+    @Test
+    void sha256HolderCamposVaciosUsanCadenaVacia() {
+        assertThat(service.sha256Holder(null, "1234567", null)).isEqualTo(service.sha256("|1234567|"));
+    }
+
+    @Test
     void buildVerificationUrlContieneUuid() {
         QrService qr = new QrService();
         String url = qr.buildVerificationUrl("http://localhost:4200", "CC-abc");

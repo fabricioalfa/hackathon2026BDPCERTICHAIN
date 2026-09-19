@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { CertificateService, Certificate } from '../../core/services/certificate.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ButtonModule } from 'primeng/button';
@@ -8,12 +9,13 @@ import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { DividerModule } from 'primeng/divider';
 import { CardModule } from 'primeng/card';
+import { AvatarModule } from 'primeng/avatar';
 import { MessageService } from 'primeng/api';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-certificates',
-  imports: [CommonModule, ButtonModule, TableModule, TagModule, DialogModule, DividerModule, CardModule, ProgressSpinnerModule],
+  imports: [CommonModule, ButtonModule, TableModule, TagModule, DialogModule, DividerModule, CardModule, AvatarModule, ProgressSpinnerModule],
   templateUrl: './certificates.component.html',
   styleUrl: './certificates.component.css'
 })
@@ -27,7 +29,8 @@ export class CertificatesComponent implements OnInit {
   constructor(
     readonly certService: CertificateService,
     private auth: AuthService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -55,6 +58,10 @@ export class CertificatesComponent implements OnInit {
     });
   }
 
+  goTo(path: string) {
+    this.router.navigate([path]);
+  }
+
   view(cert: Certificate) {
     this.selected = cert;
     this.showDetail = true;
@@ -67,6 +74,16 @@ export class CertificatesComponent implements OnInit {
   copy(text: string) {
     navigator.clipboard.writeText(text);
     this.messageService.add({ severity: 'info', summary: 'Copiado', detail: 'Valor copiado al portapapeles' });
+  }
+
+  initialsOf(title: string): string {
+    return title
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0])
+      .join('')
+      .toUpperCase();
   }
 
   statusSeverity(status: string) {

@@ -1,7 +1,10 @@
 <div class="page">
   <div class="page-header">
-    <h2>Certificados</h2>
-    <p class="page-sub">Consulta, QR y documento custodiado de todos los certificados emitidos</p>
+    <div>
+      <h2>Certificados</h2>
+      <p class="page-sub">Consulta, QR y documento custodiado de todos los certificados emitidos</p>
+    </div>
+    <p-button label="Emitir certificado" icon="pi pi-plus" (onClick)="goTo('/issue')" />
   </div>
 
   <div class="loading-center" *ngIf="loading">
@@ -15,12 +18,11 @@
     <p-button label="Reintentar" icon="pi pi-refresh" styleClass="p-button-sm p-button-outlined ml-2" (onClick)="load()" />
   </div>
 
-  <p-card *ngIf="!loading && !error">
-    <p-table [value]="certificates" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+  <p-card class="table-card" *ngIf="!loading && !error">
+    <p-table [value]="certificates" [paginator]="true" [rows]="10" styleClass="cc-table">
       <ng-template #header>
         <tr>
-          <th>UUID</th>
-          <th>Título</th>
+          <th>Documento</th>
           <th>Tipo</th>
           <th>Titular</th>
           <th>CI / DNI</th>
@@ -30,14 +32,21 @@
       </ng-template>
       <ng-template #body let-c>
         <tr>
-          <td><code>{{ c.uuid }}</code></td>
-          <td>{{ c.title }}</td>
-          <td>{{ c.docType }}</td>
-          <td>{{ c.holderName }}</td>
-          <td>{{ c.holderDni }}</td>
+          <td>
+            <div class="doc-cell">
+              <p-avatar [label]="initialsOf(c.title)" shape="circle" styleClass="doc-avatar" />
+              <div class="doc-meta">
+                <b>{{ c.title }}</b>
+                <small>{{ c.uuid }}</small>
+              </div>
+            </div>
+          </td>
+          <td><span class="type-label">{{ c.docType }}</span></td>
+          <td>{{ c.holderName || '—' }}</td>
+          <td>{{ c.holderDni || '—' }}</td>
           <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
           <td>
-            <p-button icon="pi pi-eye" label="Detalle" styleClass="p-button-sm" (onClick)="view(c)" />
+            <p-button icon="pi pi-eye" label="Detalle" styleClass="p-button-sm p-button-outlined" (onClick)="view(c)" />
           </td>
         </tr>
       </ng-template>
@@ -52,7 +61,7 @@
   </p-card>
 </div>
 
-<p-dialog header="Detalle del certificado" [(visible)]="showDetail" [style]="{ width: '600px' }" [modal]="true">
+<p-dialog header="Detalle del certificado" [(visible)]="showDetail" [style]="{ width: '620px' }" [modal]="true" [styleClass]="'cert-dialog'">
   <ng-container *ngIf="selected">
     <div class="qr-doc">
       <div class="qr-box" *ngIf="selected.qrBase64">

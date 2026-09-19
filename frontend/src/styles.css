@@ -5,9 +5,34 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  font-family: var(--font-family, 'Inter', -apple-system, 'Segoe UI', sans-serif);
-  background: #f1f5f9;
+  min-height: 100%;
+  overflow-x: clip;
+  font-family: "Archivo", "Inter", -apple-system, "Segoe UI", sans-serif;
+  font-weight: 400;
+  background-color: #f4f6fb;
   color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utilidad ancho completo (PrimeNG no la trae por defecto) */
+.w-full {
+  width: 100% !important;
+}
+
+.w-full .p-button,
+.w-full .p-inputtext,
+.w-full .p-password,
+.w-full .p-password-input,
+.w-full .p-select,
+.w-full .p-textarea,
+.w-full .p-datepicker,
+.w-full .p-datepicker-input {
+  width: 100%;
 }

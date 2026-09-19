@@ -38,6 +38,12 @@ export class VerifyComponent {
     });
   }
 
+  reset() {
+    this.uuid = '';
+    this.hash = '';
+    this.result = null;
+  }
+
   openDoc(uuid: string) {
     window.open(this.certService.documentUrl(uuid), '_blank');
   }

@@ -1,17 +1,26 @@
 .page-header {
   max-width: 1080px;
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.25rem;
 }
 
 .page-header h2 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .page-sub {
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
   color: #64748b;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+}
+
+:host ::ng-deep .issue-wrapper .p-card {
+  border-radius: 16px;
+  border: 1px solid #e8ecf4;
+  box-shadow: none;
+  background: #ffffff;
 }
 
 .issue-wrapper {

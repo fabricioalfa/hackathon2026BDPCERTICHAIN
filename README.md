@@ -98,10 +98,10 @@ Debes ver los 4 servicios con estado `Up` y `healthy` (el backend y postgres tar
 2. **Emitir un certificado** (menú *Emitir*):
    - **Sube la fotocopia/escaneo del carnet de identidad** (arrastra el archivo sobre el recuadro punteado o haz clic para seleccionarlo).
    - El OCR lee el documento en automático y extrae **nro de carnet / CI**, **nombre completo** y **fecha de nacimiento**, autocompletando los campos. Verifica y corrige si hace falta.
-   - Completa el título y tipo de documento y presiona *Emitir*. El hash SHA-256 se calcula sobre los datos **y la imagen original**, de modo que la fotocopia queda custodiada a prueba de manipulación.
+   - Completa el título y tipo de documento y presiona *Emitir*. El hash SHA-256 se calcula sobre la concatenación canónica **`Nombre|CI/DNI|Fecha de nacimiento`** (con `|` como separador y campos recortados), de modo que es **recalculable por un auditor**: si se altera cualquiera de esos tres datos, el hash deja de coincidir con el sellado en la cadena.
    - Al emitir se muestra el **QR de verificación** y la **vista previa del documento custodiado**.
 3. **Ver certificados** (menú *Certificados*): lista todos los emitidos con su hash, QR y documento custodiado (descargable desde el detalle).
-4. **Verificar autenticidad** (menú *Verificar*): la URL pública `http://localhost:4200/verify?uuid=CC-...` (la que codifica el QR) valida el certificado sin necesidad de cuenta. Si agregás el **hash SHA-256** se valida además la integridad total: altera un solo carácter del hash y la verificación falla.
+4. **Verificar autenticidad** (menú *Verificar*): la URL pública `http://localhost:4200/verify?uuid=CC-...` (la que codifica el QR) valida el certificado sin necesidad de cuenta. Si agregás el **hash de auditoría** (recalculado como `SHA-256(Nombre|CI|Nacimiento)`) se valida además la integridad de los datos del titular: altera un solo carácter y la verificación falla.
 
 > Cualquier persona con la URL `/verify?uuid=...` (por ejemplo, escaneando el QR impreso en el documento) puede autenticar un certificado sin login. El endpoint público es `/api/public/verify` y la descarga del original custodiado es `/api/public/certificate/{uuid}/document`.
 

@@ -1,25 +1,98 @@
-<div class="layout">
-  <p-menubar [model]="items">
-    <ng-template pTemplate="start">
-      <span class="brand" (click)="goDashboard()">
+<div class="layout-wrapper" [class.layout-collapsed]="sidebarCollapsed">
+  <!-- Sidebar -->
+  <aside class="layout-sidebar" [class.sidebar-mobile-open]="mobileSidebar">
+    <div class="sidebar-brand" (click)="goHome()">
+      <div class="brand-badge">
         <i class="pi pi-shield"></i>
-        <b>CERTICHAIN</b>
-        <span class="brand-bdp">BDP</span>
-      </span>
-    </ng-template>
-    <ng-template pTemplate="end">
-      <div class="user-chip">
-        <p-avatar icon="pi pi-user" shape="circle" />
-        <div class="user-meta">
-          <span class="user-name">{{ username }}</span>
-          <span class="user-role" *ngIf="role">{{ role }}</span>
-        </div>
-        <p-button icon="pi pi-sign-out" label="Salir" styleClass="p-button-text p-button-sm" (onClick)="confirmLogout()" />
       </div>
-    </ng-template>
-  </p-menubar>
+      <div class="brand-text">
+        <b>CERTICHAIN</b>
+        <span>BDP · Blockchain Docs</span>
+      </div>
+    </div>
 
-  <main class="layout-content">
-    <router-outlet />
-  </main>
+    <div class="sidebar-scroll">
+      <div class="menu-section" *ngIf="isAuthenticated">
+        <span class="menu-label">Plataforma</span>
+
+        <a class="menu-item" routerLink="/dashboard" routerLinkActive="active" (click)="onNavigate()" pRipple>
+          <i class="pi pi-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="menu-item" routerLink="/certificates" routerLinkActive="active" (click)="onNavigate()" pRipple>
+          <i class="pi pi-shield"></i>
+          <span>Certificados</span>
+        </a>
+        <a class="menu-item" routerLink="/issue" routerLinkActive="active" (click)="onNavigate()" pRipple>
+          <i class="pi pi-qrcode"></i>
+          <span>Emitir certificado</span>
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <span class="menu-label">Público</span>
+
+        <a class="menu-item" routerLink="/verify" routerLinkActive="active" (click)="onNavigate()" pRipple>
+          <i class="pi pi-shield"></i>
+          <span>Verificar documento</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="footer-user" *ngIf="isAuthenticated" (click)="goDashboard()">
+        <p-avatar [label]="initials" shape="circle" styleClass="cc-avatar" />
+        <div class="footer-user-meta">
+          <b>{{ username }}</b>
+          <span>{{ role }}</span>
+        </div>
+      </div>
+
+      <p-button *ngIf="!isAuthenticated" label="Iniciar sesión" icon="pi pi-sign-in" styleClass="w-full login-cta"
+                size="small" (onClick)="goLogin()" />
+    </div>
+  </aside>
+
+  <!-- Mobile mask -->
+  <div class="sidebar-mask" *ngIf="mobileSidebar" (click)="closeMobile()"></div>
+
+  <!-- Main -->
+  <div class="layout-main">
+    <header class="layout-topbar">
+      <div class="topbar-start">
+        <p-button icon="pi pi-bars" styleClass="topbar-toggle" [text]="true" [rounded]="true"
+                  (onClick)="toggleLayout()" />
+        <span class="topbar-title">CERTICHAIN BDP</span>
+      </div>
+
+      <div class="topbar-end">
+        <ng-container *ngIf="isAuthenticated">
+          <p-button icon="pi pi-plus" label="Emitir" styleClass="topbar-emit" size="small"
+                    (onClick)="goTo('/issue')" />
+          <button class="icon-btn" (click)="goTo('/verify')" title="Verificación pública">
+            <i class="pi pi-shield"></i>
+            <span class="icon-btn-label">Verificar</span>
+          </button>
+
+          <div class="user-chip">
+            <p-avatar [label]="initials" shape="circle" styleClass="cc-avatar" />
+            <div class="user-meta">
+              <span class="user-name">{{ username }}</span>
+              <span class="user-role" *ngIf="role">{{ role }}</span>
+            </div>
+            <p-menu #usermenu [model]="userMenu" [popup]="true" appendTo="body" />
+            <p-button icon="pi pi-chevron-down" styleClass="user-caret" [text]="true" [rounded]="true" size="small"
+                      (onClick)="usermenu.toggle($event)" ariaLabel="Menú de usuario" />
+          </div>
+        </ng-container>
+
+        <p-button *ngIf="!isAuthenticated" icon="pi pi-sign-in" label="Iniciar sesión" styleClass="topbar-emit"
+                  size="small" (onClick)="goLogin()" />
+      </div>
+    </header>
+
+    <main class="layout-content">
+      <router-outlet />
+    </main>
+  </div>
 </div>

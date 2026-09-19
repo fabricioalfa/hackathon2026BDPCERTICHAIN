@@ -1,7 +1,10 @@
-<div class="page">
-  <div class="page-header">
-    <h2>Dashboard</h2>
-    <p class="page-sub">Resumen de los certificados emitidos y respaldados en la plataforma</p>
+<div class="dash">
+  <div class="dash-header">
+    <div class="dash-header-text">
+      <h2>Bienvenido, {{ displayName }}</h2>
+      <p class="dash-sub">{{ todayLabel }} · Resumen de certificados emitidos y respaldados en la cadena</p>
+    </div>
+    <p-button label="Emitir certificado" icon="pi pi-plus" (onClick)="goTo('/issue')" />
   </div>
 
   <div class="loading-center" *ngIf="loading">
@@ -15,38 +18,151 @@
     <p-button label="Reintentar" icon="pi pi-refresh" styleClass="p-button-sm p-button-outlined ml-2" (onClick)="load()" />
   </div>
 
-  <p-card *ngIf="!loading && !error">
-    <p-table [value]="certificates" [paginator]="true" [rows]="8" styleClass="p-datatable-sm">
-      <ng-template #header>
-        <tr>
-          <th>UUID</th>
-          <th>Título</th>
-          <th>Tipo</th>
-          <th>Titular</th>
-          <th>CI / DNI</th>
-          <th>Estado</th>
-          <th>Emisión</th>
-        </tr>
-      </ng-template>
-      <ng-template #body let-c>
-        <tr>
-          <td><code>{{ c.uuid }}</code></td>
-          <td>{{ c.title }}</td>
-          <td>{{ c.docType }}</td>
-          <td>{{ c.holderName }}</td>
-          <td>{{ c.holderDni }}</td>
-          <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
-          <td>{{ c.issueDate | date: 'dd/MM/yyyy HH:mm' }}</td>
-        </tr>
-      </ng-template>
-      <ng-template #emptymessage>
-        <div class="table-empty">
-          <i class="pi pi-inbox" style="font-size: 2.5rem; color: #94a3b8"></i>
-          <h3>Aún no hay certificados emitidos</h3>
-          <p>Emite el primer certificado para empezar a custodiar y autenticar documentos en la cadena de bloques.</p>
-          <p-button label="Emitir certificado" icon="pi pi-plus" (onClick)="goTo('/issue')" />
+  <ng-container *ngIf="!loading && !error">
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card stat-card-hero">
+        <div class="stat-icon"><i class="pi pi-file"></i></div>
+        <div class="stat-meta">
+          <span class="stat-label">Total certificados</span>
+          <span class="stat-value">{{ totalCount }}</span>
+        </div>
+        <div class="stat-extra">Custodiados en blockchain</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="pi pi-check-circle"></i></div>
+        <div class="stat-meta">
+          <span class="stat-label">Activos</span>
+          <span class="stat-value">{{ activeCount }}</span>
+        </div>
+        <div class="stat-extra">{{ activePct }}% del total</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon violet"><i class="pi pi-calendar-plus"></i></div>
+        <div class="stat-meta">
+          <span class="stat-label">Emitidos este mes</span>
+          <span class="stat-value">{{ monthCount }}</span>
+        </div>
+        <div class="stat-extra">
+          <span class="trend" [class.down]="monthTrend < 0">
+            <i class="pi" [class]="monthTrend >= 0 ? 'pi-arrow-up' : 'pi-arrow-down'"></i>
+            {{ monthTrend }}%
+          </span>
+          vs mes anterior
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon amber"><i class="pi pi-users"></i></div>
+        <div class="stat-meta">
+          <span class="stat-label">Titulares únicos</span>
+          <span class="stat-value">{{ uniqueHolders }}</span>
+        </div>
+        <div class="stat-extra">Personas registradas</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-row">
+      <p-card class="chart-card chart-main">
+        <ng-template pTemplate="header">
+          <div class="card-title-row">
+            <div>
+              <h3>Certificados por tipo</h3>
+              <p>Distribución según tipo de documento</p>
+            </div>
+          </div>
+        </ng-template>
+        <div class="chart-box">
+          <p-chart type="bar" [data]="barData" [options]="barOptions" />
+        </div>
+      </p-card>
+
+      <p-card class="chart-card">
+        <ng-template pTemplate="header">
+          <div class="card-title-row">
+            <div>
+              <h3>Estado</h3>
+              <p>Certificados activos e inactivos</p>
+            </div>
+          </div>
+        </ng-template>
+        <div class="chart-box-donut">
+          <p-chart type="doughnut" [data]="donutData" [options]="donutOptions" />
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Line chart -->
+    <p-card class="chart-card">
+      <ng-template pTemplate="header">
+        <div class="card-title-row">
+          <div>
+            <h3>Evolución de emisiones</h3>
+            <p>Certificados emitidos en los últimos 6 meses</p>
+          </div>
         </div>
       </ng-template>
-    </p-table>
-  </p-card>
+      <div class="chart-box chart-box-lg">
+        <p-chart type="line" [data]="lineData" [options]="lineOptions" />
+      </div>
+    </p-card>
+
+    <!-- Recent -->
+    <p-card class="recent-card">
+      <ng-template pTemplate="header">
+        <div class="card-title-row">
+          <div>
+            <h3>Certificados recientes</h3>
+            <p>Últimos documentos emitidos y asegurados</p>
+          </div>
+          <p-button label="Ver todos" icon="pi pi-arrow-right" iconPos="right" styleClass="p-button-text p-button-sm"
+                    (onClick)="goTo('/certificates')" />
+        </div>
+      </ng-template>
+
+      <p-table [value]="recent" styleClass="cc-table">
+        <ng-template #header>
+          <tr>
+            <th>Documento</th>
+            <th>Tipo</th>
+            <th>Titular</th>
+            <th>Emisión</th>
+            <th>Estado</th>
+            <th style="width: 4.5rem; text-align: center"></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-c>
+          <tr class="cc-row" (click)="goTo('/certificates')">
+            <td>
+              <div class="doc-cell">
+                <p-avatar [label]="initialsOf(c.title)" shape="circle" styleClass="doc-avatar" />
+                <div class="doc-meta">
+                  <b>{{ c.title }}</b>
+                  <small>{{ c.uuid }}</small>
+                </div>
+              </div>
+            </td>
+            <td><span class="type-label">{{ docTypeLabel(c.docType) }}</span></td>
+            <td>{{ c.holderName || '—' }}</td>
+            <td>{{ c.issueDate | date: 'dd MMM yyyy' }}</td>
+            <td><p-tag [value]="c.status" [severity]="statusSeverity(c.status)" /></td>
+            <td style="text-align: center">
+              <i class="pi pi-chevron-right chevron"></i>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <div class="table-empty">
+            <i class="pi pi-inbox" style="font-size: 2.5rem; color: #94a3b8"></i>
+            <h3>Aún no hay certificados emitidos</h3>
+            <p>Emite el primer certificado para empezar a custodiar y autenticar documentos en la cadena de bloques.</p>
+            <p-button label="Emitir certificado" icon="pi pi-plus" (onClick)="goTo('/issue')" />
+          </div>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </ng-container>
 </div>
